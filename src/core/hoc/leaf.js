@@ -31,6 +31,8 @@ export default class LeafHoc extends Component {
             return true;
         } else if (nextProps.underControl === true || this.props.underControl !== nextProps.underControl) {
             return nextProps.hasChange; // has children must update
+        } else if (nextProps.forceUpdate) {
+            return true;
         }
         return false;
     }

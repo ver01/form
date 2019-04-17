@@ -293,7 +293,7 @@ class App extends Component {
                                 }
                             },
                         }}
-                        debug
+                        // debug
                     />
                 </div>
             </div>

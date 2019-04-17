@@ -39,6 +39,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
         value,
         rootSchema,
         rootValue,
+        updatePath,
         formProps,
         valuePath,
         changeTree = {},
@@ -82,6 +83,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
             const arrayIndexPrev = arrayIndex - 1;
             const itemSchema = getItemSchema(schema, arrayIndex, rootSchema);
             const { type: itemType } = itemSchema;
+            const newValuePath = `${valuePath}/${arrayIndex}`;
             const node = itemRender(
                 widget,
                 {
@@ -95,7 +97,8 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                     parentValue: value,
                     objectKey: null,
                     arrayIndex,
-                    valuePath: `${valuePath}/${arrayIndex}`,
+                    valuePath: newValuePath,
+                    forceUpdate: updatePath && newValuePath.startsWith(updatePath),
                     globalKey: localKey,
                     handle: {
                         canMoveUp: extOption.orderable && arrayIndex > schemaItemsLen && arrayIndex !== 0,
@@ -108,10 +111,10 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                         canAppend:
                             extOption.appendable &&
                             (!Number.isInteger(schema.maxItems) || schema.maxItems > arrayLength),
-                        onChange: val => {
+                        onChange: (val, opt) => {
                             const data = underControl ? deepClone(value) : value;
                             data[arrayIndex] = val;
-                            coreOpt.handle.onChange(data);
+                            coreOpt.handle.onChange(data, opt);
                         },
                         moveUp: () => {
                             const data = underControl ? deepClone(value) : value;
@@ -135,7 +138,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                             const temp = data[arrayIndex];
                             data[arrayIndex] = data[arrayIndexPrev];
                             data[arrayIndexPrev] = temp;
-                            coreOpt.handle.onChange(data);
+                            coreOpt.handle.onChange(data, { updatePath: coreOpt.valuePath });
                         },
                         moveDown: () => {
                             const data = underControl ? deepClone(value) : value;
@@ -159,7 +162,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                             const temp = data[arrayIndex];
                             data[arrayIndex] = data[arrayIndexNext];
                             data[arrayIndexNext] = temp;
-                            coreOpt.handle.onChange(data);
+                            coreOpt.handle.onChange(data, { updatePath: coreOpt.valuePath });
                         },
                         remove: () => {
                             // schema
@@ -174,7 +177,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                             const data = underControl ? deepClone(value) : value;
                             data.splice(arrayIndex, 1);
                             const len = value.length;
-                            coreOpt.handle.onChange(data);
+                            coreOpt.handle.onChange(data, { updatePath: coreOpt.valuePath });
                         },
                     },
                     errorObj: Validator.verify(
@@ -225,6 +228,7 @@ const objectReapeater = (widget, coreOpt, editors, formRender) => {
         extOption,
         rootValue,
         formProps,
+        updatePath,
         rootSchema,
         valuePath,
         changeTree = {},
@@ -277,6 +281,7 @@ const objectReapeater = (widget, coreOpt, editors, formRender) => {
         const objectKey = keys[index];
         const subSchema = properties[objectKey];
         const subValue = (value || {})[objectKey];
+        const newValuePath = `${valuePath}/${objectKey}`;
         const node = itemRender(
             widget,
             {
@@ -285,16 +290,17 @@ const objectReapeater = (widget, coreOpt, editors, formRender) => {
                 value: subValue,
                 schema: subSchema,
                 handle: {
-                    onChange: val => {
+                    onChange: (val, opt) => {
                         const data = underControl ? deepClone(value) : value;
-                        coreOpt.handle.onChange(Object.assign(data, { [objectKey]: val }));
+                        coreOpt.handle.onChange(Object.assign(data, { [objectKey]: val }), opt);
                     },
                 },
                 objectKey,
                 arrayIndex: null,
                 parentSchema: schema,
                 parentValue: value,
-                valuePath: `${valuePath}/${objectKey}`,
+                valuePath: newValuePath,
+                forceUpdate: updatePath && newValuePath.startsWith(updatePath),
                 globalKey: localKey,
                 errorObj: Validator.verify(
                     {

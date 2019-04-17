@@ -47,7 +47,7 @@ const ControlRender = (controlWidget, widget, coreOpt, formRender) => {
                                 schema: getItemSchema(schema, ret.length, rootSchema),
                             })
                         );
-                        coreOpt.handle.onChange(ret);
+                        coreOpt.handle.onChange(ret, { updatePath: coreOpt.valuePath });
                     },
                 });
                 child = ContainerRender(widget, coreOpt, formRender);

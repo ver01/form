@@ -12,7 +12,18 @@ const ThemeCache = { components: {}, validators: {}, registerWidgets: {} };
 
 const FormRender = function(options) {
     // **** init isRoot, valuePath, control
-    const { isRoot, valuePath, underControl, changeTree, cache, cacheUpdate, cacheRemove, debug, runtime } = options;
+    const {
+        isRoot,
+        valuePath,
+        underControl,
+        changeTree,
+        cache,
+        cacheUpdate,
+        cacheRemove,
+        debug,
+        runtime,
+        updatePath,
+    } = options;
     if (debug) {
         debug.path = `${debug.path}/Form`;
         console.log(
@@ -191,7 +202,7 @@ const FormRender = function(options) {
         options.value = widget.formatter(options.value);
     }
     if (typeof widget.normalizer === "function") {
-        options.handle.onChange = val => rawOnchage(widget.normalizer(val));
+        options.handle.onChange = (val, opt) => rawOnchage(widget.normalizer(val), opt);
     }
 
     // **** init value, extOption
@@ -236,6 +247,8 @@ const FormRender = function(options) {
         cache,
         cacheUpdate,
         cacheRemove,
+        updatePath,
+        forceUpdate: updatePath && valuePath.startsWith(updatePath),
         debug,
     };
 

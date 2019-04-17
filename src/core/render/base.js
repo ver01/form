@@ -5,11 +5,12 @@ import { isArrayLikeObject } from "../../vendor/lodash";
 
 export const leafs = (widget, coreOpt, children, key, option = {}) => {
     const { holder = false, caller = "" } = option;
-    const { changeTree = {}, debug } = coreOpt;
+    const { changeTree = {}, debug, forceUpdate } = coreOpt;
     const { hasChange = true } = changeTree;
     const props = {
         propsGenerator: scmGetProps(widget, coreOpt),
         hasChange,
+        forceUpdate,
         value: coreOpt.value,
         underControl: coreOpt.underControl,
         key,

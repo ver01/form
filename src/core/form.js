@@ -12,6 +12,7 @@ const defaultChange = {
     option: false,
     other: false,
     underControl: false,
+    pathUpdate: false,
 };
 
 export default class Form extends Component {
@@ -128,6 +129,11 @@ export default class Form extends Component {
                 }
             });
         }
+
+        // forceupdate
+        if (this.updatePath) {
+            this.change.pathUpdate = true;
+        }
     }
 
     shouldComponentUpdate(nextProps) {
@@ -158,7 +164,7 @@ export default class Form extends Component {
     }
 
     onChange(obj) {
-        const { value, equaled } = obj;
+        const { value, equaled, updatePath } = obj;
         if (this.updating) {
             this.changeList.push(obj);
             return;
@@ -170,6 +176,14 @@ export default class Form extends Component {
             this.props.onChange && this.props.onChange(deepClone(value));
             if (!this.state.underControl) {
                 this.state.value = deepClone(value); // not trigger update, just save value
+                if (updatePath) {
+                    this.updatePath =
+                        updatePath
+                            .split("/")
+                            .slice(0, -1)
+                            .join("/") || "#";
+                    this.forceUpdate();
+                }
             }
         }
     }
@@ -205,7 +219,7 @@ export default class Form extends Component {
             underControl,
             schema: deepClone(schema),
             value: this.viewValue,
-            onChange: value => this.onChange({ value }),
+            onChange: (value, opt) => this.onChange({ value, ...opt }),
             // runtime Value
             runtime: {
                 valueParent: this,
@@ -220,6 +234,7 @@ export default class Form extends Component {
             formProps: this.props,
             // render Ctrl
             changeTree: valueChangeTree,
+            updatePath: this.updatePath,
             cache,
             cacheUpdate: this.cacheUpdate.bind(this),
             cacheRemove: this.cacheRemove.bind(this),
@@ -239,6 +254,7 @@ export default class Form extends Component {
         } else if (!isEqual(this.viewValue, this.state.value)) {
             this.onChange({ value: this.viewValue, equaled: false });
         }
+        this.updatePath = "";
         return form;
     }
 }
