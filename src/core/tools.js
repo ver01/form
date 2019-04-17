@@ -19,7 +19,7 @@ export const scmGetProps = (widget, coreOpt) => {
             .filter(it => propsMixinList.includes(it))
             .map(key => (nodeProps[key] = tempProps[key]));
     }
-    return ({ value, onChange: leafOnChange }) => {
+    return ({ value, leafUpdate }) => {
         const getProps = pIn => {
             if (isPlainObject(pIn)) {
                 const pOut = {};
@@ -34,7 +34,7 @@ export const scmGetProps = (widget, coreOpt) => {
                                 handle: {
                                     ...coreOpt.handle,
                                     onChange: value => {
-                                        leafOnChange(value);
+                                        leafUpdate(value);
                                     },
                                 },
                                 value,

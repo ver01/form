@@ -1,464 +1,35 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
 import { UnControlled as CodeMirror } from "react-codemirror2";
+import { samples } from "./schemaDemo";
 import "codemirror/mode/javascript/javascript";
-
-import { getByPath } from "../src/utils";
-import { isEqual } from "../src/vendor/lodash";
-import { samples } from "./samples";
-import Form from "../src";
-import antd from "@ver01/form-theme-antd";
-
-import "@ver01/form-theme-antd/lib/index.css";
 import "codemirror/lib/codemirror.css";
 
-Form.loadTheme(antd);
+// demo mods
+import GeoPosition from "./mods/custom";
+import { CustomArray, CustomArrayChild, CustomArrayChildPartly } from "./mods/customArray";
+import { CustomObject, CustomObjectPartly } from "./mods/customObject";
 
+// some tools
+import { getByPath } from "../src/utils";
+import { isEqual } from "../src/vendor/lodash";
+
+// --- 1. ver01form core
+import Ver01Form from "../src";
+
+// --- 2. ver01form theme
+// antd
+import themeAntd from "@ver01/form-theme-antd";
+// antd style
+import "@ver01/form-theme-antd/lib/index.css";
+// load theme once
+Ver01Form.loadTheme(themeAntd);
+
+// ** consts
 const shouldRender = (comp, nextProps, nextState) => {
     const { props, state } = comp;
     return !isEqual(props, nextProps) || !isEqual(state, nextState);
 };
-class GeoPosition extends Component {
-    constructor(props) {
-        super(props);
-    }
-
-    onChange(name) {
-        const { onChange, value } = this.props;
-        return event => {
-            const newValue = {
-                ...value,
-                [name]: event.target.value,
-            };
-            setImmediate(() => onChange(newValue));
-        };
-    }
-
-    render() {
-        const { lat, lon } = this.props.value;
-        return (
-            <div className="geo" style={{ paddingBottom: "40px" }}>
-                <h3>Custom component 1 - By register widget</h3>
-                <p>
-                    I'm registered as <code>localisation</code> in app.js file. And referenced in
-                    <code>schema</code> as the <code>$vf_ext.widget</code> to use for this schema. Custom Component need
-                    2 props: <code>props.value</code> and <code>props.onChange</code>
-                </p>
-                <div className="row">
-                    <div className="col-sm-6">
-                        <label>Latitude</label>
-                        <input
-                            className="form-control"
-                            type="number"
-                            value={lat}
-                            step="0.00001"
-                            onChange={this.onChange("lat").bind(this)}
-                        />
-                    </div>
-                    <div className="col-sm-6">
-                        <label>Longitude</label>
-                        <input
-                            className="form-control"
-                            type="number"
-                            value={lon}
-                            step="0.00001"
-                            onChange={this.onChange("lon").bind(this)}
-                        />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-}
-
-const Div = props => <div {...props}>{props.children}</div>;
-const Button = props => <button {...props}>{props.children}</button>;
-const Input = props => <input {...props} />;
-
-Form.quickLoad("localisation", GeoPosition);
-
-const CustomArray = {
-    component: Div,
-    children: [
-        {
-            component: props => <h3>{props.title}</h3>,
-            props: {
-                $vf_title: ({ schema }) => schema.title,
-            },
-        },
-        {
-            mode: "repeaterHolder",
-            component: Div,
-            repeater: {
-                component: Div,
-                children: [
-                    {
-                        mode: "editorHolder",
-                        component: null,
-                    },
-                    {
-                        component: Div,
-                        children: [
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveUp,
-                                    $vf_children: ["up"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveDown,
-                                    $vf_children: ["down"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.remove,
-                                    $vf_children: ["delete"],
-                                },
-                            },
-                        ],
-                    },
-                ],
-            },
-        },
-        {
-            component: Div,
-            children: [
-                {
-                    component: Button,
-                    props: {
-                        $vf_onClick: ({ handle }) => handle.append,
-                        $vf_children: ["append"],
-                    },
-                },
-            ],
-        },
-    ],
-};
-
-Form.load("custom-array", CustomArray);
-
-const CustomArrayChild = {
-    component: Div,
-    children: [
-        {
-            component: props => <h3>{props.title}</h3>,
-            props: {
-                $vf_title: ({ schema }) => schema.title,
-            },
-        },
-        {
-            mode: "repeaterHolder",
-            component: Div,
-            repeater: {
-                component: Div,
-                children: [
-                    {
-                        mode: "editorHolder",
-                        component: null,
-                    },
-                    {
-                        component: Div,
-                        children: [
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveUp,
-                                    $vf_children: ["up"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveDown,
-                                    $vf_children: ["down"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.remove,
-                                    $vf_children: ["remove"],
-                                },
-                            },
-                        ],
-                    },
-                ],
-            },
-            editor: {
-                component: Input,
-                props: {
-                    style: { margin: "20px 0" },
-                    $vf_value: ({ value }) => value,
-                    $vf_onChange: ({ handle }) => ({ target }) => handle.onChange(target.value),
-                    placeholder: "customization",
-                },
-            },
-        },
-        {
-            component: Div,
-            children: [
-                {
-                    component: Button,
-                    props: {
-                        $vf_onClick: ({ handle }) => handle.append,
-                        $vf_children: ["append"],
-                    },
-                },
-            ],
-        },
-    ],
-};
-
-Form.load("custom-array-and-child", CustomArrayChild);
-
-const CustomArrayChildPartly = {
-    component: Div,
-    children: [
-        {
-            component: props => <h3>{props.title}</h3>,
-            props: {
-                $vf_title: ({ schema }) => schema.title,
-            },
-        },
-        {
-            mode: "repeaterHolder",
-            component: Div,
-            repeater: {
-                component: Div,
-                children: [
-                    {
-                        mode: "editorHolder",
-                        component: null,
-                    },
-                    {
-                        component: Div,
-                        children: [
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveUp,
-                                    $vf_children: ["up"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.moveDown,
-                                    $vf_children: ["down"],
-                                },
-                            },
-                            {
-                                component: Button,
-                                props: {
-                                    $vf_onClick: ({ handle }) => handle.remove,
-                                    $vf_children: ["remove"],
-                                },
-                            },
-                        ],
-                    },
-                ],
-            },
-            editor: [
-                {
-                    component: Input,
-                    editorFor: 0, // index start with 0
-                    props: {
-                        style: { margin: "20px 0" },
-                        $vf_value: ({ value }) => value,
-                        $vf_onChange: ({ handle }) => ({ target }) => handle.onChange(target.value),
-                        placeholder: "customization",
-                    },
-                },
-                {
-                    component: Input,
-                    editorFor: 2, // index start with 0
-                    props: {
-                        style: { margin: "20px 0" },
-                        $vf_value: ({ value }) => value,
-                        $vf_onChange: ({ handle }) => ({ target }) => handle.onChange(target.value),
-                        placeholder: "customization",
-                    },
-                },
-            ],
-        },
-        {
-            component: Div,
-            children: [
-                {
-                    component: Button,
-                    props: {
-                        $vf_onClick: ({ handle }) => handle.append,
-                        $vf_children: ["append"],
-                    },
-                },
-            ],
-        },
-    ],
-};
-
-Form.load("custom-array-and-child-partly", CustomArrayChildPartly);
-
-const CustomObject = {
-    component: Div,
-    children: [
-        {
-            component: props => <h3>{props.title}</h3>,
-            props: {
-                $vf_title: ({ schema }) => schema.title,
-            },
-        },
-        {
-            mode: "repeaterHolder",
-            component: null,
-            repeater: {
-                component: Div,
-                children: [
-                    {
-                        component: props => (
-                            <div>
-                                <label>{props.title}</label>
-                            </div>
-                        ),
-                        props: {
-                            $vf_title: ({ schema }) => schema.title,
-                        },
-                    },
-                    {
-                        mode: "editorHolder",
-                        component: null,
-                    },
-                    {
-                        component: ({ errors }) => (errors ? errors.message : null),
-                        props: {
-                            $vf_errors: ({ errorObj }) => errorObj,
-                        },
-                    },
-                ],
-            },
-            editor: [
-                {
-                    component: Input,
-                    editorFor: "age", // only for integer
-                    props: {
-                        style: { margin: "20px 0" },
-                        $vf_value: ({ value }) => value,
-                        $vf_onChange: ({ handle }) => ({ target }) => {
-                            if (!Number.isNaN(Number(target.value))) {
-                                handle.onChange(Number(target.value));
-                            } else {
-                                handle.onChange(target.value);
-                            }
-                        },
-                        placeholder: "customization",
-                    },
-                },
-                {
-                    component: Input,
-                    props: {
-                        style: { margin: "20px 0" },
-                        $vf_value: ({ value }) => value,
-                        $vf_onChange: ({ handle }) => ({ target }) => handle.onChange(target.value),
-                        placeholder: "customization",
-                    },
-                },
-            ],
-        },
-    ],
-};
-
-Form.load("custom-object", CustomObject);
-
-const CustomObjectPartly = {
-    component: Div,
-    children: [
-        {
-            component: props => <h3>{props.title}</h3>,
-            props: {
-                $vf_title: ({ schema }) => schema.title,
-            },
-        },
-        {
-            mode: "repeaterHolder",
-            component: null,
-            repeater: {
-                mode: "editorHolder",
-                component: null,
-            },
-            editor: [
-                {
-                    component: Div,
-                    editorFor: "age", // only for integer
-                    children: [
-                        {
-                            component: props => (
-                                <div>
-                                    <label>{props.title}</label>
-                                </div>
-                            ),
-                            props: {
-                                $vf_title: ({ schema }) => schema.title,
-                            },
-                        },
-                        {
-                            component: Input,
-                            props: {
-                                style: { margin: "20px 0" },
-                                $vf_value: ({ value }) => value,
-                                $vf_onChange: ({ handle }) => ({ target }) => {
-                                    if (!Number.isNaN(Number(target.value))) {
-                                        handle.onChange(Number(target.value));
-                                    } else {
-                                        handle.onChange(target.value);
-                                    }
-                                },
-                                placeholder: "customization",
-                            },
-                        },
-                        {
-                            component: ({ errors }) => (errors ? errors.message : null),
-                            props: {
-                                $vf_errors: ({ errorObj }) => errorObj,
-                            },
-                        },
-                    ],
-                },
-                {
-                    component: Div,
-                    editorFor: "bio(custom)", // for specialKey
-                    children: [
-                        {
-                            component: props => (
-                                <div>
-                                    <label>{props.title}</label>
-                                </div>
-                            ),
-                            props: {
-                                $vf_title: ({ schema }) => schema.title,
-                            },
-                        },
-                        {
-                            component: Input,
-                            props: {
-                                style: { margin: "20px 0" },
-                                $vf_value: ({ value }) => value,
-                                $vf_onChange: ({ handle }) => ({ target }) => handle.onChange(target.value),
-                                placeholder: "customization",
-                            },
-                        },
-                    ],
-                },
-            ],
-        },
-    ],
-};
-
-Form.load("custom-object-partly", CustomObjectPartly);
-
 const toJson = val => JSON.stringify(val, null, 4);
 const fromJson = json => JSON.parse(json);
 const cmOptions = {
@@ -475,9 +46,22 @@ const cmOptions = {
     tabSize: 4,
 };
 
+// --- 3. schemaDemo/custom: custom ReactComponent
+Ver01Form.quickLoad("localisation", GeoPosition);
+
+// --- 4. schemaDemo/customArray: custom RuleDefineComponent
+Ver01Form.load("custom-array", CustomArray);
+Ver01Form.load("custom-array-and-child", CustomArrayChild);
+Ver01Form.load("custom-array-and-child-partly", CustomArrayChildPartly);
+
+// --- 5. schemaDemo/customObject: custom RuleDefineComponent
+Ver01Form.load("custom-object", CustomObject);
+Ver01Form.load("custom-object-partly", CustomObjectPartly);
+
+// --- 6. FormModeSelector
 function FormModeSelector({ value, select }) {
     return (
-        <Form
+        <Ver01Form
             schema={{
                 type: "object",
                 properties: {
@@ -598,8 +182,8 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            underControl: true,
-            writeBack: false,
+            underControl: false,
+            writeBack: true,
         };
     }
     componentDidMount() {
@@ -672,8 +256,8 @@ class App extends Component {
                             <Editor
                                 title={
                                     underControl
-                                        ? "Value(UnderControl Continue Control Form)"
-                                        : "DefaultValue(Not UnderControl Just init Form Value Once)"
+                                        ? "Value(UnderControl Continue Control Ver01Form)"
+                                        : "DefaultValue(Not UnderControl Just init Ver01Form Value Once)"
                                 }
                                 code={toJson(underControl ? value : defaultValue)}
                                 onChange={formData => this.onValueEdited(formData)}
@@ -689,11 +273,13 @@ class App extends Component {
                     </div>
                 </div>
                 <div className="col-sm-5">
-                    <Form
+                    {/* main entry */}
+                    <Ver01Form
                         schema={schema}
-                        value={underControl ? value : undefined} // underControl
-                        defaultValue={underControl ? undefined : defaultValue} // not underControl
+                        value={underControl ? value : undefined} // underControl（when undefined）
+                        defaultValue={underControl ? undefined : defaultValue} // not underControl（when undefined）; recommend:high performance
                         onChange={this.onValueChange}
+                        // custom validator
                         validators={{
                             passEqualTo: ({ value, ruleValue: valuePath, rootValue }) => {
                                 const pairValue = getByPath(rootValue, valuePath);
@@ -707,7 +293,7 @@ class App extends Component {
                                 }
                             },
                         }}
-                        // debug
+                        debug
                     />
                 </div>
             </div>

@@ -35,7 +35,7 @@ export default class LeafHoc extends Component {
         return false;
     }
 
-    onChange(value) {
+    leafUpdate(value) {
         if (!this.state.underControl && value !== this.state.value) {
             this.setState({
                 value,
@@ -58,11 +58,23 @@ export default class LeafHoc extends Component {
             );
         if (children) {
             return (
-                <Com {...propsGenerator({ value: this.state.value, onChange: this.onChange.bind(this) })}>
+                <Com
+                    {...propsGenerator({
+                        value: this.state.value,
+                        leafUpdate: this.leafUpdate.bind(this),
+                    })}
+                >
                     {children}
                 </Com>
             );
         }
-        return <Com {...propsGenerator({ value: this.state.value, onChange: this.onChange.bind(this) })} />;
+        return (
+            <Com
+                {...propsGenerator({
+                    value: this.state.value,
+                    leafUpdate: this.leafUpdate.bind(this),
+                })}
+            />
+        );
     }
 }

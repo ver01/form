@@ -1,6 +1,6 @@
 import { isArrayLikeObject, isPlainObject, deepClone } from "../../vendor/lodash";
 import { getEditor } from "../tools";
-import { getDefault, getItemSchema, getByPath, getCache } from "../../utils";
+import { getItemSchema, getByPath, getCache } from "../../utils";
 import { leafs } from "./base";
 import Validator from "../validator";
 
@@ -174,17 +174,6 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                             const data = underControl ? deepClone(value) : value;
                             data.splice(arrayIndex, 1);
                             const len = value.length;
-                            coreOpt.handle.onChange(data);
-                        },
-                        append: () => {
-                            const data = underControl ? deepClone(value) : value;
-                            data.splice(
-                                arrayIndexNext,
-                                0,
-                                getDefault({
-                                    schema: getItemSchema(schema, arrayIndexNext, rootSchema),
-                                })
-                            );
                             coreOpt.handle.onChange(data);
                         },
                     },
