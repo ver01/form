@@ -1,5 +1,5 @@
 import Form from "./core/form";
-import FormRender from "./core/render";
+import FormRender from "./core/render/formRender";
 import { register } from "./core/tools";
 
 Form.loadTheme = theme => register(theme, FormRender.ThemeCache);

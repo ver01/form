@@ -1,271 +1,216 @@
-import { Component } from "react";
-import PropTypes from "prop-types";
-import FormRender from "./render";
-import { deepClone, isEqual, isEqualWith } from "../vendor/lodash";
+import React, { Component } from "react";
+import FormRender from "./render/formRender";
+import FormView from "./render/formView";
+import { deepClone, isEqual, isUndefined, isEqualWith, isPlainObject, isArrayLikeObject } from "../vendor/lodash";
 import { getValueChange } from "../utils";
 
-const defaultSchema = null;
-const defaultOption = {};
-const defaultChange = {
-    schema: false,
-    value: false,
-    option: false,
-    other: false,
-    underControl: false,
-    pathUpdate: false,
+const compare = (newV, oldV) => {
+    if (typeof newV === "function") {
+        if (typeof oldV === "function") {
+            return newV.toString() === oldV.toString();
+        }
+        return false;
+    } else if (isPlainObject(newV)) {
+        if (isPlainObject(oldV)) {
+            const keys = Object.keys(newV);
+            return !keys.some(key => !isEqualWithDeep(newV[key], oldV[key], compare));
+        }
+        return false;
+    } else if (isArrayLikeObject(newV)) {
+        if (isArrayLikeObject(oldV)) {
+            return !newV.some((v, ind) => !isEqualWithDeep(v, oldV[ind], compare));
+        }
+        return false;
+    }
+    return isEqual(newV, oldV);
 };
+const isEqualWithDeep = (newOther, other) => isEqualWith(newOther, other, compare);
 
 export default class Form extends Component {
-    static defaultProps = {
-        schema: defaultSchema,
-        option: defaultOption,
-    };
-
     constructor(props) {
         super(props);
 
-        const { schema = defaultSchema, option = defaultOption, value, defaultValue } = props;
-        const keys = Object.keys(props);
-        let underControl = keys.includes("value") || !keys.includes("defaultValue") || undefined;
+        const { value, defaultValue, schema = null, option = {}, debug = false } = props;
+        let underControl = isUndefined(value) ? (isUndefined(defaultValue) ? null : false) : true;
 
         this.state = {
-            schema,
-            option,
-            value: underControl ? deepClone(value) : deepClone(defaultValue),
             underControl,
-            cache: {},
+            rootRawReadonlySchema: schema,
+            rootRawReadonlyValue: underControl ? value : defaultValue,
+            rootOption: option,
         };
 
-        this.change = { ...defaultChange };
-        this.changeList = [];
-        this.updating = true;
-        props.debug && console.log("%c%s", "color:blue", "==== by init");
+        this.rootRuntimeSchema = deepClone(schema); // Generate By Render
+        this.rootRuntimeValueObj = { root: underControl ? deepClone(value) : deepClone(defaultValue) }; // Generate By Render
+        this.rootRuntimeCache = {};
+        this.rootUpdateTree = {};
+        this.rootControlCache = { valuePath: {} };
+
+        this.viewValueObj = { root: undefined };
+
+        this.shouldUpdate = "init";
+
+        debug && console.log("%c%s", "color:blue", `==== by ${this.shouldUpdate}`);
     }
 
     componentWillReceiveProps(nextProps) {
-        this.change = { ...defaultChange };
+        this.shouldUpdate = false;
 
         const {
             value: newValue,
             defaultValue: newDefaultValue,
-            schema: newSchema = defaultSchema,
-            option: newOption = defaultOption,
+            schema: newSchema = null,
+            option: newOption = {},
             ...newOther
         } = nextProps;
-        const { value, defaultValue, schema = defaultSchema, option = defaultOption, ...other } = this.props;
-
+        const { value, defaultValue, schema = null, option = {}, ...other } = this.props;
         const newState = {};
 
-        // schema change?
+        // underControl, rootRawReadonlyValue
+        switch (this.state.underControl) {
+            case true:
+                if (!isEqual(newValue, value)) {
+                    newState.rootRawReadonlyValue = newValue;
+                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                        this.shouldUpdate = true;
+                        this.rootRuntimeValueObj = { root: deepClone(newValue) };
+                        this.viewValueObj = { root: deepClone(newValue) };
+                    }
+                }
+                break;
+            case false:
+                if (!isEqual(newDefaultValue, defaultValue)) {
+                    newState.rootRawReadonlyValue = newDefaultValue;
+                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                        this.shouldUpdate = true;
+                        this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
+                        this.viewValueObj = { root: deepClone(newDefaultValue) };
+                    }
+                }
+                break;
+            default:
+                if (!isUndefined(newValue)) {
+                    newState.underControl = true;
+                    newState.rootRawReadonlyValue = newValue;
+                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                        this.shouldUpdate = true;
+                        this.rootRuntimeValueObj = { root: deepClone(newValue) };
+                        this.viewValueObj = { root: deepClone(newValue) };
+                    }
+                } else if (!isUndefined(defaultValue)) {
+                    newState.underControl = false;
+                    newState.rootRawReadonlyValue = newDefaultValue;
+                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                        this.shouldUpdate = true;
+                        this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
+                        this.viewValueObj = { root: deepClone(newDefaultValue) };
+                    }
+                }
+                break;
+        }
+
+        // rootRawReadonlySchema
         if (!isEqual(newSchema, schema)) {
-            newState.schema = newSchema;
-            this.change.schema = true;
-            this.change.underControl = true;
-            this.change.value = true;
+            newState.rootRawReadonlySchema = newSchema;
+            this.shouldUpdate = true;
+            this.rootRuntimeSchema = deepClone(newSchema);
         }
 
-        if (typeof nextProps.value !== "undefined") {
-            newState.underControl = true;
-            if (this.state.underControl !== true) {
-                this.change.underControl = true;
-            }
-        } else if (typeof nextProps.defaultValue !== "undefined") {
-            newState.underControl = false;
-            if (this.state.underControl !== false) {
-                this.change.underControl = true;
-            }
-        }
-        if (!this.change.underControl) {
-            delete newState.underControl;
-        } else {
-            this.viewValue = undefined; // refresh component control mode;
-        }
-
-        // option Change?
+        // rootOption
         if (!isEqual(newOption, option)) {
-            this.change.option = true;
-            newState.option = newOption;
+            newState.rootOption = newOption;
+            this.shouldUpdate = true;
         }
 
-        // value change
-        if (this.change.schema) {
-            // new Form
-            newState.value = newState.underControl ? newValue : newDefaultValue;
-        } else if (Object.keys(newState).includes("underControl") ? newState.underControl : this.state.underControl) {
-            // underControl
-            if (!isEqual(this.state.value, newValue)) {
-                newState.value = newValue;
-                this.change.value = true;
-            }
-        } else if (this.change.underControl) {
-            // underControl is unkonw && first recieve defaultValue
-            newState.value = newState.underControl ? newValue : newDefaultValue;
-            this.change.value = true;
+        // rootProps
+        if (!isEqualWithDeep(newOther, other)) {
+            this.shouldUpdate = true;
         }
 
-        if (Object.keys(newState).length) {
-            if (this.change.value) {
-                newState.value = deepClone(newState.value);
-            }
-            if (this.change.schema) {
-                newState.cache = {
-                    ...this.state.cache,
-                    valuePath: {},
-                };
-            }
+        const changeKeys = Object.keys(newState);
+
+        if (changeKeys.length) {
             this.setState(newState);
         }
-
-        if (!isEqual(newOther, other)) {
-            this.change.other = isEqualWith(newOption, other, (newV, oldV) => {
-                if (typeof newV === "function") {
-                    if (typeof oldV === "function") {
-                        return newV.toString() === oldV.toString();
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return isEqual(newV, oldV);
-                }
-            });
-        }
-
-        // forceupdate
-        if (this.updatePath) {
-            this.change.pathUpdate = true;
+        if (this.shouldUpdate) {
+            this.shouldUpdate = changeKeys.join(", ");
         }
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.debug) {
-            const renderReason = `${Object.keys(this.change)
-                .filter(key => this.change[key])
-                .join(",")}`;
-            if (renderReason) {
-                console.log("%c%s", "color:blue", `==== by ${renderReason}`);
-            }
+        const change = this.shouldUpdate;
+        if (nextProps.debug && change) {
+            console.log("%c%s", "color:blue", `==== by ${change}`);
         }
-        const change = Object.keys(this.change).some(key => this.change[key]);
-        this.change = { ...defaultChange };
-        return change;
-    }
+        this.shouldUpdate = false;
 
-    componentWillUpdate() {
-        this.updating = true;
-    }
-
-    componentDidUpdate() {
-        this.updating = false;
-        const obj = this.changeList.pop();
-        if (obj) {
-            this.changeList = [];
-            this.onChange(obj);
-        }
-    }
-
-    onChange(obj) {
-        const { value, equaled, updatePath } = obj;
-        if (this.updating) {
-            this.changeList.push(obj);
-            return;
-        }
-        if (equaled === true) {
-            return;
-        }
-        if (equaled === false || !isEqual(value, this.state.value)) {
-            this.props.onChange && this.props.onChange(deepClone(value));
-            if (!this.state.underControl) {
-                this.state.value = deepClone(value); // not trigger update, just save value
-                if (updatePath) {
-                    this.updatePath =
-                        updatePath
-                            .split("/")
-                            .slice(0, -1)
-                            .join("/") || "#";
-                    this.forceUpdate();
-                }
-            }
-        }
-    }
-
-    cacheUpdate(type, key, obj, forceUpdate = false) {
-        if (this.state.cache[type][key]) {
-            Object.assign(this.state.cache[type][key], obj);
-        } else {
-            this.state.cache[type][key] = { ...obj };
-        }
-        if (forceUpdate) {
-            this.forceUpdate();
-        }
-    }
-
-    cacheRemove(type, key, forceUpdate = false) {
-        if (this.state.cache[type][key]) {
-            delete this.state.cache[type][key];
-            if (forceUpdate) {
-                this.forceUpdate();
-            }
-        }
+        // to boolean
+        return !!change;
     }
 
     render() {
-        const { value, underControl, schema, cache } = this.state;
+        const { debug } = this.props;
+        debug &&
+            console.log(
+                "%s%c%s%s%o",
+                "render: underControl(",
+                `color:${
+                    this.state.underControl === true ? "blue" : this.state.underControl === false ? "green" : "red"
+                }`,
+                `${this.state.underControl}`,
+                ")",
+                this.rootRuntimeValueObj.root,
+                this.viewValueObj.root
+            );
 
-        const valueChangeTree = getValueChange(this.viewValue, value);
-        this.props.debug && console.info("==== render ====", this.viewValue, value, valueChangeTree);
-        this.viewValue = deepClone(value);
+        this.rootRuntimeError = {};
+        this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
 
-        const form = FormRender({
-            underControl,
-            schema: deepClone(schema),
-            value: this.viewValue,
-            onChange: (value, opt) => this.onChange({ value, ...opt }),
-            // runtime Value
-            runtime: {
-                valueParent: this,
-                valueKey: "viewValue",
-            },
-            // control
-            isRoot: true,
-            globalKey: 0,
+        const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, rootOption } = this.state;
+        const {
+            rootRuntimeSchema,
+            rootRuntimeValueObj,
+            rootRuntimeError,
+            props: rootProps,
+            rootControlCache,
+            rootRenderTree,
+        } = this;
+
+        const dataSource = {};
+
+        FormRender({
+            rootRawReadonlySchema,
+            rootRuntimeSchema,
+            rootRawReadonlyValue,
+            rootRuntimeValue: rootRuntimeValueObj.root,
+            rootRuntimeError,
+            rootProps,
+            rootOption,
+            rootControlCache,
+            rootRenderTree,
+            debug,
+            dataSource,
             valuePath: "#",
-            // rootOpt
-            formOption: this.props.option,
-            formProps: this.props,
-            // render Ctrl
-            changeTree: valueChangeTree,
-            updatePath: this.updatePath,
-            cache,
-            cacheUpdate: this.cacheUpdate.bind(this),
-            cacheRemove: this.cacheRemove.bind(this),
-            ...(this.props.debug
-                ? {
-                      debug: {
-                          path: "#",
-                          inLoop: false,
-                      },
-                  }
-                : {}),
+
+            schema: rootRuntimeSchema,
+            valueNode: { node: rootRuntimeValueObj, key: "root" },
         });
 
-        if (typeof this.state.value === "undefined") {
-            // no trigger onChange when schema generator value with no value input
-            this.state.value = this.viewValue;
-        } else if (!isEqual(this.viewValue, this.state.value)) {
-            this.onChange({ value: this.viewValue, equaled: false });
+        debug && console.info("dataSource", dataSource);
+
+        switch (underControl) {
+            case true:
+                break;
+            case false:
+                break;
+            default:
+                break;
         }
-        this.updatePath = "";
-        return form;
+
+        if (!isEqual(this.rootRuntimeValueObj.root, this.viewValueObj.root)) {
+            this.viewValueObj.root = deepClone(this.rootRuntimeValueObj.root);
+        }
+
+        return <FormView dataSource={dataSource} />;
     }
-}
-if (process.env.NODE_ENV !== "production") {
-    Form.propTypes = {
-        schema: PropTypes.any,
-        value: PropTypes.any,
-        defaultValue: PropTypes.any,
-        validators: PropTypes.object,
-        onChange: PropTypes.func,
-        onHandle: PropTypes.func, // export handle
-        option: PropTypes.object.isRequired,
-    };
 }

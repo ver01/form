@@ -5,5 +5,6 @@ import baseIsEqual from "./.internal/baseIsEqual";
 import isEqualWith from "./isEqualWith";
 
 const isEqual = baseIsEqual;
+const isUndefined = value => value === undefined;
 
-export { deepClone, isPlainObject, isArrayLikeObject, isEqual, isEqualWith };
+export { deepClone, isPlainObject, isArrayLikeObject, isEqual, isEqualWith, isUndefined };
