@@ -32,7 +32,7 @@ export const coreOption = {
         },
     },
 
-    extOption: {
+    schemaOption: {
         // read by schema.$vf_ext.option
         // for array:
         orderable: true,
@@ -69,4 +69,13 @@ export const validator = {
 export const widget = {
     formatter: () => {},
     normalizer: () => {},
+};
+
+export const rootControlCache = {
+    valuePath: {
+        valuePath: {
+            activeSchemaIndex: 0,
+            activeSchemaForce: true,
+        },
+    },
 };

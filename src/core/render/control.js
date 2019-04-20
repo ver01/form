@@ -1,87 +1,87 @@
-import { getDefault, getItemSchema } from "../../utils";
+import { setCache, getDefault, getNodeValue } from "../../utils";
+import { getItemSchema } from "../../schemaUtils";
 import ContainerRender from "./container";
-import BaseRender, { leafs } from "./base";
-import { isArrayLikeObject, deepClone } from "../../vendor/lodash";
+import BaseRender from "./base";
+import dsMaker from "./dsMaker";
 
-const ControlRender = (controlWidget, widget, coreOpt, formRender) => {
-    const { value, schema, valuePath, rootSchema, debug, underControl, globalKey, cacheUpdate } = coreOpt;
+const ControlRender = (controlWidget, widget, options) => {
+    const { rootControlCache } = options;
+    const {
+        runtimeValueNode,
+        runtimeSchema,
+        valuePath,
+        rootRuntimeSchema,
+        debug,
+        debugObj,
+        dataSource,
+        domIndex,
+        handle,
+        formUpdate,
+    } = options;
+
+    const value = getNodeValue(runtimeValueNode);
 
     if (debug) {
-        if (debug.inLoop) {
-            debug.inLoop = false;
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
         } else {
-            debug.path = `${debug.path}/Control`;
-            console.log(
-                "%c%s %cChange:%o %cValue:%o",
-                "color:green",
-                debug.path,
-                "color:blue",
-                coreOpt.changeTree,
-                "color:blue",
-                coreOpt.value
-            );
+            debugObj.path = `${debugObj.path}/Control`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
         }
     }
 
     const schemaSelect = index => {
         const int = typeof index === "string" ? parseInt(index, 10) : index;
-        cacheUpdate("valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true }, true);
+        setCache(rootControlCache, "valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true });
+        formUpdate("schemaSelect");
     };
+    options.handle.schemaSelect = schemaSelect;
 
     if (controlWidget.mode === "editorHolder") {
-        let child = null;
-        switch (schema.type) {
+        switch (runtimeSchema.type) {
             case "object":
-                child = ContainerRender(widget, coreOpt, formRender);
+                ContainerRender(widget, options);
                 break;
             case "array": {
-                Object.assign(coreOpt.handle, {
+                Object.assign(handle, {
                     canAppend:
-                        !(coreOpt.extOption.appendable === false) &&
-                        (!Number.isInteger(schema.maxItems) || schema.maxItems > (value || []).length),
+                        !(options.schemaOption.appendable === false) &&
+                        (!Number.isInteger(runtimeSchema.maxItems) || runtimeSchema.maxItems > (value || []).length),
                     append: () => {
-                        const data = underControl ? deepClone(value) : value;
-                        const ret = data || [];
+                        const ret = value || [];
                         ret.push(
                             getDefault({
-                                schema: getItemSchema(schema, ret.length, rootSchema),
+                                runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
                             })
                         );
-                        coreOpt.handle.onChange(ret, { updatePath: coreOpt.valuePath });
+                        options.handle.onChange(ret, { updatePath: options.valuePath });
                     },
                 });
-                child = ContainerRender(widget, coreOpt, formRender);
+                ContainerRender(widget, options);
                 break;
             }
             default:
-                child = BaseRender(widget, coreOpt);
+                BaseRender(widget, options);
                 break;
         }
-        return leafs(controlWidget, { ...coreOpt, handle: { ...coreOpt.handle, schemaSelect } }, child, globalKey, {
+        dsMaker(dataSource, controlWidget, options, {
             holder: true,
             caller: "Control",
         });
-    }
-
-    let localKey = globalKey;
-    let nodeChildren = [];
-    const loopLen = (controlWidget.children || []).length || 0;
-    for (let index = 0; index < loopLen; index++) {
-        const child = controlWidget.children[index];
-        debug && (debug.inLoop = true);
-        const subNodes = ControlRender(child, widget, { ...coreOpt, globalKey: localKey }, formRender);
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
-        } else {
-            localKey++;
-            nodeChildren.push(subNodes);
+    } else {
+        dataSource.children = [];
+        let localIndex = domIndex;
+        const loopLen = (controlWidget.children || []).length || 0;
+        for (let index = 0; index < loopLen; index++) {
+            debug && (debugObj.inLoop = true);
+            options.domIndex = localIndex;
+            dataSource.children[index] = {};
+            ControlRender(controlWidget.children[index], widget, options);
+            localIndex += dataSource.children[index].domLength;
         }
-    }
 
-    return leafs(controlWidget, { ...coreOpt, handle: { ...coreOpt.handle, schemaSelect } }, nodeChildren, globalKey, {
-        caller: "Control",
-    });
+        dsMaker(dataSource, controlWidget, options, { caller: "Root" });
+    }
 };
 
 export default ControlRender;

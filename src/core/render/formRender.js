@@ -1,20 +1,38 @@
-import { handleRef, handleXofAndValue } from "../../schemaUtils";
+import { handleRef, handleXofAndValue, handleValidator } from "../../schemaUtils";
+import { getByPath } from "../../utils";
 import { getWidget } from "../tools";
 import RootRender from "./root";
+import ControlRender from "./control";
 
 const ThemeCache = { components: {}, validators: {}, registerWidgets: {} };
 
-const FormRender = function(options, passBySchemaHandle = false) {
-    const { rootRawReadonlySchema, rootRuntimeSchema } = options;
+const FormRender = function(options, bypassSchemaHandle = false, isRoot = false) {
+    const { rootRawReadonlySchema, rootRuntimeSchema, runtimeSchema, parentRuntimeSchema, widgetForChild } = options;
 
-    if (!passBySchemaHandle) {
+    if (!bypassSchemaHandle) {
         handleRef(rootRuntimeSchema, rootRawReadonlySchema);
         handleXofAndValue(options);
     }
 
-    const { widget } = getWidget(ThemeCache.components.root, ThemeCache, rootRuntimeSchema);
+    if (!isRoot) {
+        handleValidator(options, ThemeCache);
+    }
 
-    return RootRender(widget, options, this.ThemeCache);
+    const { widget } = getWidget(
+        isRoot ? ThemeCache.components.root : ThemeCache.components[runtimeSchema.type],
+        runtimeSchema,
+        parentRuntimeSchema,
+        widgetForChild
+    );
+
+    options.schemaOption = getByPath(runtimeSchema, "$vf_ext/option") || {};
+
+    if (isRoot) {
+        RootRender(widget, options);
+    } else {
+        const { widget: controlWidget } = getWidget(ThemeCache.components.control);
+        ControlRender(controlWidget, widget, options);
+    }
 };
 
 FormRender.ThemeCache = ThemeCache;

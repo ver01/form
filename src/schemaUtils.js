@@ -1,11 +1,12 @@
 import { isArrayLikeObject, isPlainObject, deepClone } from "./vendor/lodash";
-import { dealSomeOf, dealInitValue, dealDependencies } from "./core/render/logicMods";
+import { dealSomeOf, dealDependencies } from "./core/render/logicMods";
+import { getNodeValue, setNodeValue, setCache } from "./utils";
 
-export const simplifySchema = schema => {
-    schema.items && simplifySchema(schema.items);
-    if (schema.enum && schema.enum.length === 1) {
-        schema.const = schema.enum[0];
-        delete schema.enum;
+export const simplifySchema = runtimeSchema => {
+    runtimeSchema.items && simplifySchema(runtimeSchema.items);
+    if (runtimeSchema.enum && runtimeSchema.enum.length === 1) {
+        runtimeSchema.const = runtimeSchema.enum[0];
+        delete runtimeSchema.enum;
     }
 };
 
@@ -50,38 +51,37 @@ export function getSchemaByPath(schema, path) {
         return deepClone(ret);
     }
 }
-
-export function handleRef(schema, rootSchema, deep = 1) {
+export function handleRef(runtimeSchema, rootRawReadonlySchema, deep = 1) {
     if (deep < 0) {
         return;
     }
-    if (schema["$ref"]) {
-        const refDefine = getSchemaByPath(rootSchema, schema["$ref"]);
+    if (runtimeSchema["$ref"]) {
+        const refDefine = getSchemaByPath(rootRawReadonlySchema, runtimeSchema["$ref"]);
         const keys = Object.keys(refDefine);
         keys.map(key => {
-            if (typeof schema[key] === "undefined") {
-                schema[key] = refDefine[key];
+            if (typeof runtimeSchema[key] === "undefined") {
+                runtimeSchema[key] = refDefine[key];
             }
         });
-        delete schema["$ref"];
+        delete runtimeSchema["$ref"];
     }
-    if (schema.properties) {
-        const keys = Object.keys(schema.properties);
-        keys.map(key => handleRef(schema.properties[key], rootSchema, deep - 1));
+    if (runtimeSchema.properties) {
+        const keys = Object.keys(runtimeSchema.properties);
+        keys.map(key => handleRef(runtimeSchema.properties[key], rootRawReadonlySchema, deep - 1));
     }
-    if (schema.items) {
-        if (isArrayLikeObject(schema.items)) {
-            schema.items.map(it => handleRef(it, rootSchema, deep - 1));
+    if (runtimeSchema.items) {
+        if (isArrayLikeObject(runtimeSchema.items)) {
+            runtimeSchema.items.map(it => handleRef(it, rootRawReadonlySchema, deep - 1));
         } else {
-            handleRef(schema.items, rootSchema, deep - 1);
+            handleRef(runtimeSchema.items, rootRawReadonlySchema, deep - 1);
         }
     }
 }
 
 export function handleXofAndValue(options) {
-    const { schema, rootControlCache, valuePath, valueNode, rootRawReadonlySchema } = options;
+    const { runtimeSchema, rootControlCache, valuePath, runtimeValueNode, rootRawReadonlySchema } = options;
 
-    // **** init schema, schemaList, value
+    // **** init runtimeSchema, schemaList, runtimeValueNode
     // params init
     let schemaList = null;
     let isRawSchema = true;
@@ -92,51 +92,51 @@ export function handleXofAndValue(options) {
         if (isRawSchema || isSchemaChange) {
             isSchemaChange = false;
 
-            if (isArrayLikeObject(schema.oneOf)) {
+            if (isArrayLikeObject(runtimeSchema.oneOf)) {
                 isRawSchema = false;
                 isSchemaChange = true;
                 schemaList = dealSomeOf(
-                    schema,
-                    schema.oneOf,
+                    runtimeSchema,
+                    runtimeSchema.oneOf,
                     null,
                     rootControlCache,
                     valuePath,
-                    valueNode,
+                    runtimeValueNode,
                     rootRawReadonlySchema
                 );
-            } else if (isArrayLikeObject(schema.anyOf)) {
+            } else if (isArrayLikeObject(runtimeSchema.anyOf)) {
                 isRawSchema = false;
                 isSchemaChange = true;
                 schemaList = dealSomeOf(
-                    schema,
-                    schema.anyOf,
+                    runtimeSchema,
+                    runtimeSchema.anyOf,
                     null,
                     rootControlCache,
                     valuePath,
-                    valueNode,
+                    runtimeValueNode,
                     rootRawReadonlySchema
                 );
-            } else if (isArrayLikeObject(schema.allOf)) {
+            } else if (isArrayLikeObject(runtimeSchema.allOf)) {
                 isRawSchema = false;
                 isSchemaChange = true;
                 schemaList = dealSomeOf(
-                    schema,
+                    runtimeSchema,
                     null,
-                    schema.allOf,
+                    runtimeSchema.allOf,
                     rootControlCache,
                     valuePath,
-                    valueNode,
+                    runtimeValueNode,
                     rootRawReadonlySchema
                 );
             }
             if (isSchemaChange) {
-                delete schema.oneOf;
-                delete schema.anyOf;
-                delete schema.allOf;
+                delete runtimeSchema.oneOf;
+                delete runtimeSchema.anyOf;
+                delete runtimeSchema.allOf;
 
                 // **** simplify schema & update value;
-                simplifySchema(schema);
-                dealInitValue(options, schema);
+                simplifySchema(runtimeSchema);
+                initValue(options);
             }
         }
 
@@ -144,33 +144,33 @@ export function handleXofAndValue(options) {
         if (isRawSchema || isSchemaChange) {
             isSchemaChange = false;
 
-            if (isPlainObject(schema.dependencies)) {
+            if (isPlainObject(runtimeSchema.dependencies)) {
                 isRawSchema = false;
                 isSchemaChange = true;
-                dealDependencies(schema, options.value);
+                dealDependencies(runtimeSchema, options.value);
             }
 
             if (isSchemaChange) {
-                // **** simplify schema & update value;
-                simplifySchema(schema);
-                dealInitValue(options, schema);
+                // **** simplify runtimeSchema & update value;
+                simplifySchema(runtimeSchema);
+                initValue(options);
             }
         }
     }
 
     // schema no change need update value
     if (isRawSchema) {
-        simplifySchema(schema);
-        dealInitValue(options, schema);
+        simplifySchema(runtimeSchema);
+        initValue(options);
     }
     if (schemaList) {
-        rootControlCache.valuePath[valuePath].schemaList = schemaList;
+        setCache(rootControlCache, "valuePath", valuePath, { schemaList });
     }
 }
 
-export function getItemSchema(schema, index, rootSchema) {
-    handleRef(schema, rootSchema);
-    const { items, additionalItems } = schema;
+export function getItemSchema(runtimeSchema, index, rootRawReadonlySchema) {
+    handleRef(runtimeSchema, rootRawReadonlySchema);
+    const { items, additionalItems } = runtimeSchema;
     let subSchema = null;
     if (isArrayLikeObject(items)) {
         if (index < items.length) {
@@ -191,19 +191,19 @@ export function getItemSchema(schema, index, rootSchema) {
     return subSchema;
 }
 
-export function isSchemaMatched(value, schema, rootSchema) {
+export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
     const typeOfVal = typeof value;
     if (typeOfVal === "undefined") {
         return true;
     }
-    if (schema.hasOwnProperty("const")) {
-        return JSON.stringify(value) === JSON.stringify(schema.const);
+    if (runtimeSchema.hasOwnProperty("const")) {
+        return JSON.stringify(value) === JSON.stringify(runtimeSchema.const);
     }
-    if (isArrayLikeObject(schema.enum) && schema.enum.length === 1) {
-        return JSON.stringify(value) === JSON.stringify(schema.enum[0]);
+    if (isArrayLikeObject(runtimeSchema.enum) && runtimeSchema.enum.length === 1) {
+        return JSON.stringify(value) === JSON.stringify(runtimeSchema.enum[0]);
     }
     // just check type
-    switch (schema.type) {
+    switch (runtimeSchema.type) {
         case "string":
             return typeOfVal === "string";
         case "number":
@@ -217,20 +217,20 @@ export function isSchemaMatched(value, schema, rootSchema) {
         case "array":
             if (isArrayLikeObject(value)) {
                 return !value.some((it, ind) => {
-                    const itSchema = getItemSchema(schema, ind, rootSchema);
-                    handleRef(itSchema, rootSchema);
-                    return !isSchemaMatched(it, itSchema, rootSchema);
+                    const itSchema = getItemSchema(runtimeSchema, ind, rootRawReadonlySchema);
+                    handleRef(itSchema, rootRawReadonlySchema);
+                    return !isSchemaMatched(it, itSchema, rootRawReadonlySchema);
                 });
             }
             return false;
         case "object":
             if (isPlainObject(value)) {
-                const keys = Object.keys(schema.properties || {});
+                const keys = Object.keys(runtimeSchema.properties || {});
                 return !keys.some(key => {
                     if (typeof value[key] !== "undefined") {
-                        const itSchema = schema.properties[key];
-                        handleRef(itSchema, rootSchema);
-                        return !isSchemaMatched(value[key], itSchema, rootSchema);
+                        const itSchema = runtimeSchema.properties[key];
+                        handleRef(itSchema, rootRawReadonlySchema);
+                        return !isSchemaMatched(value[key], itSchema, rootRawReadonlySchema);
                     }
                     return true;
                 });
@@ -241,36 +241,80 @@ export function isSchemaMatched(value, schema, rootSchema) {
     }
 }
 
-export function initValue(value, schema, rootSchema) {
-    if (schema.hasOwnProperty("const")) {
-        return deepClone(schema.const);
-    } else if (isArrayLikeObject(schema.enum) && schema.enum.length === 1) {
-        return deepClone(schema.enum[0]);
+export function initValue(options) {
+    const { runtimeSchema, runtimeValueNode, rootRawReadonlySchema } = options;
+    const value = getNodeValue(runtimeValueNode);
+    if (runtimeSchema.hasOwnProperty("const")) {
+        return deepClone(runtimeSchema.const);
+    } else if (isArrayLikeObject(runtimeSchema.enum) && runtimeSchema.enum.length === 1) {
+        return deepClone(runtimeSchema.enum[0]);
     }
-    let ret = schema.default;
+    let ret = runtimeSchema.default;
     if (typeof value !== "undefined") {
         ret = value;
     }
-    if (schema.type === "array") {
+    if (runtimeSchema.type === "array") {
         if (!isArrayLikeObject(ret)) {
             ret = [];
         }
         const length = ret.length;
         for (let index = 0; index < length; index++) {
-            ret[index] = initValue(ret[index], getItemSchema(schema, index, rootSchema), rootSchema);
+            ret[index] = initValue(
+                ret[index],
+                getItemSchema(runtimeSchema, index, rootRawReadonlySchema),
+                rootRawReadonlySchema
+            );
         }
     }
-    if (schema.type === "object") {
+    if (runtimeSchema.type === "object") {
         if (typeof ret !== "object" || ret === null) {
             ret = {};
         }
-        const keys = Object.keys(schema.properties || {});
+        const keys = Object.keys(runtimeSchema.properties || {});
         keys.map(key => {
-            const val = initValue(ret[key], schema.properties[key], rootSchema);
+            const val = initValue(ret[key], runtimeSchema.properties[key], rootRawReadonlySchema);
             if (typeof val !== "undefined") {
                 ret[key] = val;
             }
         });
     }
-    return ret;
+    setNodeValue(runtimeValueNode, ret);
 }
+
+export const schemaMerge = (target, ...merges) => {
+    const merge = (a, b) => {
+        const { title: titleA = "", properties: propertiesA = {}, required: requiredA = [] } = a;
+        const { title: titleB = "", properties: propertiesB = {}, required: requiredB = [], ...othersB } = b;
+
+        // title
+        const newTitle = titleA ? titleA : titleB;
+
+        // properties
+        const pAkeys = Object.keys(propertiesA);
+        const overWriteProperties = {};
+        const appendProperties = {};
+        Object.keys(propertiesB).map(key =>
+            pAkeys.includes(key)
+                ? (overWriteProperties[key] = schemaMerge(propertiesA[key], propertiesB[key]))
+                : (appendProperties[key] = propertiesB[key])
+        );
+
+        // required
+        const appendRequired = [];
+        requiredB.map(key => (requiredA.includes(key) ? null : appendRequired.push(key)));
+
+        Object.assign(a, {
+            title: newTitle,
+            properties: {
+                ...propertiesA,
+                ...overWriteProperties,
+                ...appendProperties,
+            },
+            required: [...requiredA, ...appendRequired],
+            ...othersB,
+        });
+        return a;
+    };
+    merges.map(it => merge(target, it));
+    return target;
+};

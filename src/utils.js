@@ -1,36 +1,45 @@
-import { isArrayLikeObject, isPlainObject, deepClone } from "./vendor/lodash";
+import { isArrayLikeObject, isPlainObject } from "./vendor/lodash";
+import { isUndefined } from "./vendor/lodash";
 
 export function getCache(cache, type, key) {
-    try {
-        let ret = cache[type][key];
-        return typeof ret === "undefined" ? {} : ret;
-    } catch (e) {
-        return {};
-    }
+    return (cache[type] && cache[type][key]) || {};
+}
+
+export function setCache(cache, type, key, value) {
+    cache[type] || (cache[type] = {});
+    Object.assign(cache[type][key], value);
+}
+
+export function getNodeValue(node) {
+    return node.node ? node.node[node.key] : undefined;
+}
+
+export function setNodeValue(node, value) {
+    node.node && (node.node[node.key] = value);
 }
 
 export function getDefault(options) {
-    const { schema } = options;
-    if (schema) {
-        if (schema.default) {
-            return schema.default;
-        } else if (typeof schema.const !== "undefined") {
-            return schema.const;
-        } else if (schema.oneOf && schema.oneOf[0]) {
-            const a = schema;
-            const b = schema.oneOf[0];
-            const { oneOf, ...others } = deepClone(Object.assign({}, b, a));
-            return getDefault({ schema: { ...others } });
-        } else if (schema.anyOf) {
-            const a = schema;
-            const b = schema.anyOf[0];
-            const { anyOf, ...others } = deepClone(Object.assign({}, b, a));
-            return getDefault({ schema: { ...others } });
-        } else if (schema.allOf) {
-            const { anyOf, ...others } = deepClone(Object.assign({}, ...schema.anyOf, schema));
-            return getDefault({ schema: { ...others } });
+    const { runtimeSchema } = options;
+    if (runtimeSchema) {
+        if (!isUndefined(runtimeSchema.const)) {
+            return runtimeSchema.const;
+        } else if (runtimeSchema.default) {
+            return runtimeSchema.default;
+        } else if (isArrayLikeObject(runtimeSchema.oneOf) && runtimeSchema.oneOf[0]) {
+            const a = runtimeSchema;
+            const b = runtimeSchema.oneOf[0];
+            const { oneOf, ...others } = Object.assign({}, a, b);
+            return getDefault({ runtimeSchema: others });
+        } else if (runtimeSchema.anyOf) {
+            const a = runtimeSchema;
+            const b = runtimeSchema.anyOf[0];
+            const { anyOf, ...others } = Object.assign({}, a, b);
+            return getDefault({ runtimeSchema: others });
+        } else if (runtimeSchema.allOf) {
+            const { allOf, ...others } = Object.assign({}, runtimeSchema, ...runtimeSchema.allOf);
+            return getDefault({ runtimeSchema: others });
         } else {
-            switch (schema.type) {
+            switch (runtimeSchema.type) {
                 case "string": {
                     return "";
                 }
@@ -51,12 +60,12 @@ export function getDefault(options) {
                 }
                 case "object": {
                     const result = {};
-                    if (schema.properties) {
-                        const keys = Object.keys(schema.properties);
+                    if (runtimeSchema.properties) {
+                        const keys = Object.keys(runtimeSchema.properties);
                         if (keys.length) {
                             keys.map(key => {
                                 result[key] = getDefault({
-                                    schema: schema.properties[key],
+                                    runtimeSchema: runtimeSchema.properties[key],
                                 });
                             });
                         }
@@ -64,7 +73,7 @@ export function getDefault(options) {
                     return result;
                 }
                 default: {
-                    return;
+                    return undefined;
                 }
             }
         }
@@ -150,42 +159,4 @@ export const getValueChange = (oldV, newV, node = {}) => {
         node.hasChange = !(oldV === newV);
     }
     return node;
-};
-
-export const schemaMerge = (target, ...merges) => {
-    const merge = (a, b) => {
-        const { title: titleA = "", properties: propertiesA = {}, required: requiredA = [] } = a;
-        const { title: titleB = "", properties: propertiesB = {}, required: requiredB = [], ...othersB } = b;
-
-        // title
-        const newTitle = titleA ? titleA : titleB;
-
-        // properties
-        const pAkeys = Object.keys(propertiesA);
-        const overWriteProperties = {};
-        const appendProperties = {};
-        Object.keys(propertiesB).map(key =>
-            pAkeys.includes(key)
-                ? (overWriteProperties[key] = schemaMerge(propertiesA[key], propertiesB[key]))
-                : (appendProperties[key] = propertiesB[key])
-        );
-
-        // required
-        const appendRequired = [];
-        requiredB.map(key => (requiredA.includes(key) ? null : appendRequired.push(key)));
-
-        Object.assign(a, {
-            title: newTitle,
-            properties: {
-                ...propertiesA,
-                ...overWriteProperties,
-                ...appendProperties,
-            },
-            required: [...requiredA, ...appendRequired],
-            ...othersB,
-        });
-        return a;
-    };
-    merges.map(it => merge(target, it));
-    return target;
 };

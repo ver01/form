@@ -1,43 +1,29 @@
-import { leafs } from "./base";
-import { isArrayLikeObject } from "../../vendor/lodash";
+import dsMaker from "./dsMaker";
+import FormRender from "./formRender";
 
-const RootRender = (widget, coreOpt, formRender) => {
-    const { globalKey, debug } = coreOpt;
+const RootRender = (widget, options) => {
+    const { domIndex, debug, debugObj, runtimeValueNode, dataSource } = options;
+    const BYPASS_SCHEMA_HANDLE = true;
     if (debug) {
-        debug.path = `${debug.path}/Root`;
-        console.log(
-            "%c%s %cChange:%o %cValue:%o",
-            "color:green",
-            debug.path,
-            "color:blue",
-            coreOpt.changeTree,
-            "color:blue",
-            coreOpt.value
-        );
+        debugObj.path = `${debugObj.path}/Root`;
+        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
     }
 
     if (widget.mode === "editorHolder") {
-        const { onChange } = coreOpt.handle; // remove other handler
-        const child = formRender({ ...coreOpt, handle: { onChange } });
-        return leafs(widget, coreOpt, child, globalKey, { holder: true, caller: "Root" });
-    }
-
-    let localKey = globalKey;
-    let nodeChildren = [];
-    const loopLen = (widget.children || []).length || 0;
-    for (let index = 0; index < loopLen; index++) {
-        const child = widget.children[index];
-        const subNodes = RootRender(child, { ...coreOpt, globalKey: localKey }, formRender);
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
-        } else {
-            localKey++;
-            nodeChildren.push(subNodes);
+        FormRender(options, BYPASS_SCHEMA_HANDLE);
+        dsMaker(dataSource, widget, options, { holder: true, caller: "Root" });
+    } else {
+        dataSource.children = [];
+        let localIndex = domIndex;
+        const loopLen = (widget.children || []).length || 0;
+        for (let index = 0; index < loopLen; index++) {
+            dataSource.children[index] = {};
+            RootRender(dataSource.children[index], { ...options, domIndex: localIndex });
+            localIndex += dataSource.children[index].domLength;
         }
-    }
 
-    return leafs(widget, coreOpt, nodeChildren, globalKey, { caller: "Root" });
+        dsMaker(dataSource, widget, options, { caller: "Root" });
+    }
 };
 
 export default RootRender;

@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import FormRender from "./render/formRender";
 import FormView from "./render/formView";
 import { deepClone, isEqual, isUndefined, isEqualWith, isPlainObject, isArrayLikeObject } from "../vendor/lodash";
-import { getValueChange } from "../utils";
 
 const compare = (newV, oldV) => {
     if (typeof newV === "function") {
@@ -37,7 +36,7 @@ export default class Form extends Component {
             underControl,
             rootRawReadonlySchema: schema,
             rootRawReadonlyValue: underControl ? value : defaultValue,
-            rootOption: option,
+            formOption: option,
         };
 
         this.rootRuntimeSchema = deepClone(schema); // Generate By Render
@@ -48,14 +47,12 @@ export default class Form extends Component {
 
         this.viewValueObj = { root: undefined };
 
-        this.shouldUpdate = "init";
+        debug && console.log("%c%s", "color:blue", "==== by init");
 
-        debug && console.log("%c%s", "color:blue", `==== by ${this.shouldUpdate}`);
+        this.shouldUpdate = false;
     }
 
     componentWillReceiveProps(nextProps) {
-        this.shouldUpdate = false;
-
         const {
             value: newValue,
             defaultValue: newDefaultValue,
@@ -116,9 +113,9 @@ export default class Form extends Component {
             this.rootRuntimeSchema = deepClone(newSchema);
         }
 
-        // rootOption
+        // formOption
         if (!isEqual(newOption, option)) {
-            newState.rootOption = newOption;
+            newState.formOption = newOption;
             this.shouldUpdate = true;
         }
 
@@ -148,6 +145,16 @@ export default class Form extends Component {
         return !!change;
     }
 
+    onChange(value, option) {
+        this.props.debug && console.info("onChange: ", value);
+        // this.props.onChange && this.props.onChange(deepClone(value));
+    }
+
+    formUpdate(action) {
+        this.shouldUpdate = action;
+        this.forceUpdate();
+    }
+
     render() {
         const { debug } = this.props;
         debug &&
@@ -164,37 +171,52 @@ export default class Form extends Component {
             );
 
         this.rootRuntimeError = {};
-        this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
+        // this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
 
-        const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, rootOption } = this.state;
-        const {
-            rootRuntimeSchema,
-            rootRuntimeValueObj,
-            rootRuntimeError,
-            props: rootProps,
-            rootControlCache,
-            rootRenderTree,
-        } = this;
+        const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, formOption } = this.state;
+        const { rootRuntimeSchema, rootRuntimeValueObj, rootRuntimeError, props: rootProps, rootControlCache } = this;
 
         const dataSource = {};
 
-        FormRender({
-            rootRawReadonlySchema,
-            rootRuntimeSchema,
-            rootRawReadonlyValue,
-            rootRuntimeValue: rootRuntimeValueObj.root,
-            rootRuntimeError,
-            rootProps,
-            rootOption,
-            rootControlCache,
-            rootRenderTree,
-            debug,
-            dataSource,
-            valuePath: "#",
+        const THE_ROOT = true;
+        const NOT_BYPASS_SCHEMA_HANDLE = false;
 
-            schema: rootRuntimeSchema,
-            valueNode: { node: rootRuntimeValueObj, key: "root" },
-        });
+        FormRender(
+            {
+                rootRawReadonlySchema,
+                rootRuntimeSchema,
+                rootRawReadonlyValue,
+                rootRuntimeValue: rootRuntimeValueObj.root,
+                rootRuntimeError,
+                rootProps,
+                formOption,
+                rootControlCache,
+                dataSource,
+                underControl,
+                valuePath: "#",
+
+                runtimeSchema: rootRuntimeSchema,
+                runtimeValueNode: { node: rootRuntimeValueObj, key: "root" },
+                parentRuntimeSchema: null,
+                parentRuntimeValue: undefined,
+                childEditor: null,
+                handle: {
+                    onChange: (value, opt) => this.onChange(value, opt),
+                },
+                objectKey: null,
+                arrayIndex: null,
+                domIndex: 0,
+
+                formUpdate: this.formUpdate.bind(this),
+
+                debug,
+                debugObj: {
+                    path: "#",
+                },
+            },
+            NOT_BYPASS_SCHEMA_HANDLE,
+            THE_ROOT
+        );
 
         debug && console.info("dataSource", dataSource);
 

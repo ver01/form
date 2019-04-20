@@ -69,7 +69,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
     if (isArrayLikeObject(value)) {
         const schemaItemsLen = isArrayLikeObject(schema.items) ? schema.items.length : 0;
         const arrayLength = value.length;
-        const extOption = {
+        const schemaOption = {
             orderable: true,
             addable: true,
             removable: true,
@@ -101,15 +101,15 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                     forceUpdate: updatePath && newValuePath.startsWith(updatePath),
                     globalKey: localKey,
                     handle: {
-                        canMoveUp: extOption.orderable && arrayIndex > schemaItemsLen && arrayIndex !== 0,
+                        canMoveUp: schemaOption.orderable && arrayIndex > schemaItemsLen && arrayIndex !== 0,
                         canMoveDown:
-                            extOption.orderable && arrayIndexNext > schemaItemsLen && arrayIndexNext !== arrayLength,
+                            schemaOption.orderable && arrayIndexNext > schemaItemsLen && arrayIndexNext !== arrayLength,
                         canRemove:
-                            extOption.removable &&
+                            schemaOption.removable &&
                             arrayIndexNext > schemaItemsLen &&
                             (!Number.isInteger(schema.minItems) || schema.minItems < arrayLength),
                         canAppend:
-                            extOption.appendable &&
+                            schemaOption.appendable &&
                             (!Number.isInteger(schema.maxItems) || schema.maxItems > arrayLength),
                         onChange: (val, opt) => {
                             const data = underControl ? deepClone(value) : value;
@@ -194,7 +194,7 @@ const arrayReapeater = (widget, coreOpt, editors, formRender) => {
                         },
                         ThemeCache
                     ),
-                    extOption,
+                    schemaOption,
                     // using for custom array child widgetShcema
                     childEditor: getEditor(editors, arrayIndex),
                     runtime: {
@@ -225,7 +225,7 @@ const objectReapeater = (widget, coreOpt, editors, formRender) => {
         schema,
         globalKey,
         value,
-        extOption,
+        schemaOption,
         rootValue,
         formProps,
         updatePath,
@@ -251,7 +251,7 @@ const objectReapeater = (widget, coreOpt, editors, formRender) => {
     }
 
     let keys = Object.keys(properties);
-    const { order = [] } = extOption;
+    const { order = [] } = schemaOption;
     if (order.length) {
         let after = order.splice(order.indexOf("*"));
         after = after.splice(1);
