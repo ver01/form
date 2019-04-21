@@ -1,3 +1,4 @@
+import { getNodeValue } from "../../utils";
 import dsMaker from "./dsMaker";
 
 const BaseRender = function(widget, options) {
@@ -7,7 +8,7 @@ const BaseRender = function(widget, options) {
             debugObj.inLoop = false;
         } else {
             debugObj.path = `${debugObj.path}/Base`;
-            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", getNodeValue(runtimeValueNode));
         }
     }
 
@@ -26,7 +27,7 @@ const BaseRender = function(widget, options) {
     }
 
     dsMaker(dataSource, widget, options, {
-        caller: `Base-${arrayIndex === null ? "" : arrayIndex}${objectKey === null ? "" : objectKey}`,
+        caller: `Base${arrayIndex === null ? "" : `-${arrayIndex}`}${objectKey === null ? "" : `-${objectKey}`}`,
     });
 };
 export default BaseRender;

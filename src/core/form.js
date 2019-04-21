@@ -160,20 +160,6 @@ export default class Form extends Component {
     }
 
     render() {
-        const { debug } = this.props;
-        debug &&
-            console.log(
-                "%s%c%s%s%o",
-                "render: underControl(",
-                `color:${
-                    this.state.underControl === true ? "blue" : this.state.underControl === false ? "green" : "red"
-                }`,
-                `${this.state.underControl}`,
-                ")",
-                this.rootRuntimeValueObj.root,
-                this.viewValueObj.root
-            );
-
         this.rootRuntimeError = {};
         // this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
 
@@ -184,6 +170,21 @@ export default class Form extends Component {
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
+
+        const { debug } = this.props;
+        debug &&
+            console.log(
+                "%s%c%s%s%o%o%o",
+                "render: underControl(",
+                `color:${
+                    this.state.underControl === true ? "blue" : this.state.underControl === false ? "green" : "red"
+                }`,
+                `${this.state.underControl}`,
+                ")",
+                this.viewValueObj.root,
+                rootRuntimeValueObj.root,
+                rootRuntimeSchema
+            );
 
         FormRender(
             {

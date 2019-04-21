@@ -26,7 +26,7 @@ const ControlRender = (controlWidget, widget, options, ThemeCache) => {
             debugObj.inLoop = false;
         } else {
             debugObj.path = `${debugObj.path}/Control`;
-            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
         }
     }
 

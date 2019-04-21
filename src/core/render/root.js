@@ -1,3 +1,4 @@
+import { getNodeValue } from "../../utils";
 import dsMaker from "./dsMaker";
 import FormRender from "./formRender";
 
@@ -9,7 +10,7 @@ const RootRender = (widget, options) => {
             debugObj.inLoop = false;
         } else {
             debugObj.path = `${debugObj.path}/Root`;
-            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", getNodeValue(runtimeValueNode));
         }
     }
 

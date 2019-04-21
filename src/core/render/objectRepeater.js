@@ -10,7 +10,7 @@ const ObjectReapeaterRender = (widget, options, editors, ThemeCache) => {
 
     if (debug) {
         debugObj.path = `${debugObj.path}/Array`;
-        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
     }
 
     let keys = Object.keys(properties);

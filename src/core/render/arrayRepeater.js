@@ -25,7 +25,7 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
 
     if (debug) {
         debugObj.path = `${debugObj.path}/Array`;
-        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
     }
 
     dataSource.children = [];
@@ -45,7 +45,6 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
         const arrayIndexNext = arrayIndex + 1;
         const arrayIndexPrev = arrayIndex - 1;
         const itemSchema = getItemSchema(runtimeSchema, arrayIndex, rootRuntimeSchema);
-        const { type: itemType } = itemSchema;
         handleValidator(
             {
                 ...options,
@@ -62,8 +61,6 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
         ItemRender(widget, {
             ...options,
             runtimeValueNode: { node: value, key: arrayIndex },
-            isArray: itemType === "array",
-            isObject: itemType === "object",
             runtimeSchema: itemSchema,
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,

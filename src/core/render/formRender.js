@@ -27,6 +27,8 @@ const FormRender = function(options, bypassSchemaHandle = false, isRoot = false)
     );
 
     options.schemaOption = getByPath(runtimeSchema, "$vf_ext/option") || {};
+    options.isArray = runtimeSchema.type === "array";
+    options.isObject = runtimeSchema.type === "object";
 
     if (isRoot) {
         RootRender(widget, options);

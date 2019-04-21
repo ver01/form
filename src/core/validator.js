@@ -45,7 +45,7 @@ const handleValidator = (options, ThemeCache) => {
         valueType === "string" &&
         runtimeValue.length < runtimeSchema.minLength
     ) {
-        errorsPush(minLength({ runtimeValue, ruleValue: runtimeSchema.minLength, runtimeSchema }));
+        errorsPush(minLength({ value: runtimeValue, ruleValue: runtimeSchema.minLength, schema: runtimeSchema }));
     }
 
     // require check
@@ -58,13 +58,13 @@ const handleValidator = (options, ThemeCache) => {
         switch (runtimeSchema.type) {
             case "string": {
                 if (!runtimeValue) {
-                    errorsPush(required({ runtimeValue, ruleValue: true, runtimeSchema }));
+                    errorsPush(required({ value: runtimeValue, ruleValue: true, schema: runtimeSchema }));
                 }
                 break;
             }
             default:
                 if (isUndefined(runtimeValue)) {
-                    errorsPush(required({ runtimeValue, ruleValue: true, runtimeSchema }));
+                    errorsPush(required({ value: runtimeValue, ruleValue: true, schema: runtimeSchema }));
                 }
                 break;
         }
@@ -75,43 +75,57 @@ const handleValidator = (options, ThemeCache) => {
         switch (runtimeSchema.type) {
             case "string": {
                 if (valueType !== "string") {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "number": {
                 if (valueType !== "number") {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "integer": {
                 if (valueType !== "number" || !Number.isInteger(runtimeValue)) {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "boolean": {
                 if (valueType !== "boolean") {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "null": {
                 if (runtimeValue !== null) {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "array": {
                 if (!isArrayLikeObject(runtimeValue)) {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
             case "object": {
                 if (!isPlainObject(runtimeValue)) {
-                    errorsPush(typeofValidate({ runtimeValue, ruleValue: runtimeSchema.type, runtimeSchema }));
+                    errorsPush(
+                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
+                    );
                 }
                 break;
             }
@@ -125,7 +139,7 @@ const handleValidator = (options, ThemeCache) => {
         isArrayLikeObject(runtimeValue) &&
         runtimeValue.length < runtimeSchema.minItems
     ) {
-        errorsPush(minItems({ runtimeValue, ruleValue: runtimeSchema.minItems, runtimeSchema }));
+        errorsPush(minItems({ value: runtimeValue, ruleValue: runtimeSchema.minItems, schema: runtimeSchema }));
     }
 
     // maxItems check
@@ -135,14 +149,14 @@ const handleValidator = (options, ThemeCache) => {
         isArrayLikeObject(runtimeValue) &&
         runtimeValue.length > runtimeSchema.maxItems
     ) {
-        errorsPush(maxItems({ runtimeValue, ruleValue: runtimeSchema.maxItems, runtimeSchema }));
+        errorsPush(maxItems({ value: runtimeValue, ruleValue: runtimeSchema.maxItems, schema: runtimeSchema }));
     }
 
     // minimum check
     if (minimum && ["number", "integer"].includes(runtimeSchema.type)) {
         const num = Number(runtimeSchema.minimum);
         if (!Number.isNaN(num) && runtimeValue < num) {
-            errorsPush(minimum({ runtimeValue, ruleValue: num, runtimeSchema }));
+            errorsPush(minimum({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
         }
     }
 
@@ -150,7 +164,7 @@ const handleValidator = (options, ThemeCache) => {
     if (maximum && ["number", "integer"].includes(runtimeSchema.type)) {
         const num = Number(runtimeSchema.maximum);
         if (!Number.isNaN(num) && runtimeValue > num) {
-            errorsPush(maximum({ runtimeValue, ruleValue: num, runtimeSchema }));
+            errorsPush(maximum({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
         }
     }
 
@@ -159,7 +173,7 @@ const handleValidator = (options, ThemeCache) => {
         const num = Number(runtimeSchema.multipleOf);
         if (!Number.isNaN(num)) {
             if (runtimeValue % num !== 0) {
-                errorsPush(multipleOf({ runtimeValue, ruleValue: num, runtimeSchema }));
+                errorsPush(multipleOf({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
             }
         }
     }
@@ -171,7 +185,9 @@ const handleValidator = (options, ThemeCache) => {
                 {
                     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                     if (runtimeValue && !re.test(String(runtimeValue).toLowerCase())) {
-                        errorsPush(format({ runtimeValue, ruleValue: runtimeSchema.format, runtimeSchema }));
+                        errorsPush(
+                            format({ value: runtimeValue, ruleValue: runtimeSchema.format, schema: runtimeSchema })
+                        );
                     }
                 }
                 break;
@@ -179,7 +195,9 @@ const handleValidator = (options, ThemeCache) => {
                 {
                     const re = /^[-a-zA-Z0-9@:%_+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&//=]*)?$/;
                     if (runtimeValue && !re.test(String(runtimeValue).toLowerCase())) {
-                        errorsPush(format({ runtimeValue, ruleValue: runtimeSchema.format, runtimeSchema }));
+                        errorsPush(
+                            format({ value: runtimeValue, ruleValue: runtimeSchema.format, schema: runtimeSchema })
+                        );
                     }
                 }
                 break;
@@ -192,7 +210,7 @@ const handleValidator = (options, ThemeCache) => {
     if (pattern && runtimeSchema.type === "string" && !isUndefined(runtimeSchema.pattern)) {
         const ret = new RegExp(runtimeSchema.pattern);
         if (!ret.test(runtimeValue)) {
-            errorsPush(pattern({ runtimeValue, ruleValue: runtimeSchema.pattern, runtimeSchema }));
+            errorsPush(pattern({ value: runtimeValue, ruleValue: runtimeSchema.pattern, schema: runtimeSchema }));
         }
     }
 
@@ -207,7 +225,7 @@ const handleValidator = (options, ThemeCache) => {
         const cmp = JSON.stringify(runtimeValue);
         for (let i = 0; i < arrayIndex; i++) {
             if (cmp === JSON.stringify(parentRuntimeValue[i])) {
-                errorsPush(uniqueItems({ runtimeValue, ruleValue: i + 1, runtimeSchema }));
+                errorsPush(uniqueItems({ value: runtimeValue, ruleValue: i + 1, schema: runtimeSchema }));
             }
         }
     }
@@ -234,9 +252,9 @@ const handleValidator = (options, ThemeCache) => {
             }
             errorsPush(
                 dependencies({
-                    runtimeValue,
+                    value: runtimeValue,
                     ruleValue: title,
-                    parentRuntimeSchema,
+                    schema: parentRuntimeSchema,
                 })
             );
         };
@@ -260,11 +278,11 @@ const handleValidator = (options, ThemeCache) => {
             if (typeof formProps.validators[type] === "function") {
                 errorsPush(
                     formProps.validators[type]({
-                        runtimeValue,
-                        rootRawReadonlyValue,
-                        rootRuntimeSchema,
-                        parentRuntimeSchema,
-                        runtimeSchema,
+                        value: runtimeValue,
+                        rootValue: rootRawReadonlyValue,
+                        rootSchema: rootRuntimeSchema,
+                        parentSchema: parentRuntimeSchema,
+                        schema: runtimeSchema,
                         ruleName: type,
                         ruleValue: validatorSchema[type],
                         objectKey,

@@ -8,13 +8,14 @@ export const register = function(theme, cache) {
     });
 };
 
-const optionMapping = (widget, options) => {
+const optionMapping = (options, widget) => {
     const {
         rootRuntimeSchema,
         rootRuntimeValue,
         rootRuntimeError,
         formProps,
         formOption,
+        schemaOption,
         runtimeSchema,
         runtimeValueNode,
         parentRuntimeSchema,
@@ -31,12 +32,14 @@ const optionMapping = (widget, options) => {
     } = options;
 
     let value = getNodeValue(runtimeValueNode);
-    if (typeof widget.formatter === "function") {
-        value = widget.formatter(value);
-    }
-    if (typeof widget.normalizer === "function") {
-        let rawOnchage = onChange;
-        onChange = val => rawOnchage(widget.normalizer(val));
+    if (widget) {
+        if (typeof widget.formatter === "function") {
+            value = widget.formatter(value);
+        }
+        if (typeof widget.normalizer === "function") {
+            let rawOnchage = onChange;
+            onChange = val => rawOnchage(widget.normalizer(val));
+        }
     }
 
     const errorObj = rootRuntimeError[valuePath];
@@ -48,6 +51,7 @@ const optionMapping = (widget, options) => {
         errorObj,
         formProps,
         formOption,
+        schemaOption,
         schema: runtimeSchema,
         value,
         parentSchema: parentRuntimeSchema,
@@ -80,7 +84,7 @@ export const scmGetProps = (widget, options) => {
                 if (matchs && matchs[1]) {
                     // when match switch function only
                     if (typeof pIn[key] === "function") {
-                        pOut[matchs[1]] = pIn[key](optionMapping(widget, options));
+                        pOut[matchs[1]] = pIn[key](optionMapping(options, widget));
                     } else {
                         pOut[matchs[1]] = pIn[key];
                     }
@@ -143,7 +147,8 @@ export const getWidget = function(node, runtimeSchema, parentRuntimeSchema, widg
             let widgetName, widgetData;
             node.getWidget.some(fun => {
                 if (typeof fun === "function") {
-                    const ret = fun({ runtimeSchema, parentRuntimeSchema });
+                    // call custom function need map
+                    const ret = fun({ schema: runtimeSchema, parentSchema: parentRuntimeSchema });
                     if (ret) {
                         widgetName = ret.widgetName;
                         widgetData = ret.widgetData;

@@ -1,3 +1,4 @@
+import { getNodeValue } from "../../utils";
 import RepeaterRender from "./repeater";
 import dsMaker from "./dsMaker";
 
@@ -8,10 +9,9 @@ const containerRender = (widget, options, ThemeCache) => {
             debugObj.inLoop = false;
         } else {
             debugObj.path = `${debugObj.path}/Container`;
-            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", getNodeValue(runtimeValueNode));
         }
     }
-
     if (widget.mode === "repeaterHolder") {
         RepeaterRender(widget, options, ThemeCache);
         dsMaker(dataSource, widget, options, { holder: true, caller: "Container" });
