@@ -151,7 +151,7 @@ const ArrayReapeaterRender = (widget, options, editors) => {
                 valueParent: runtime.valueParent[runtime.valueKey],
                 valueKey: arrayIndex,
             },
-            debug: debug ? { path: `${debug.path}[${arrayIndex}]` } : null,
+            debug: debug ? { path: `${debugObj.path}[${arrayIndex}]` } : null,
         });
     }
 };

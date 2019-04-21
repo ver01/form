@@ -1,36 +1,16 @@
-import { isArrayLikeObject, isPlainObject, deepClone } from "../../vendor/lodash";
+import { getNodeValue } from "../../utils";
 import { getEditor } from "../tools";
-import Validator from "../validator";
+import handleValidator from "../validator";
 import ItemRender from "./item";
 
 const ObjectReapeaterRender = (widget, options, editors) => {
-    const {
-        underControl,
-        schema,
-        globalKey,
-        value,
-        schemaOption,
-        rootValue,
-        formProps,
-        updatePath,
-        rootSchema,
-        valuePath,
-        changeTree = {},
-        runtime,
-        debug,
-    } = options;
-    const { properties = {} } = schema;
+    const { runtimeSchema, domIndex, runtimeValueNode, schemaOption, valuePath, debug, debugObj } = options;
+    const { properties = {} } = runtimeSchema;
+    const value = getNodeValue(runtimeValueNode);
+
     if (debug) {
-        debug.path = `${debug.path}/Object`;
-        console.log(
-            "%c%s %cChange:%o %cValue:%o",
-            "color:green",
-            debug.path,
-            "color:blue",
-            changeTree,
-            "color:blue",
-            options.value
-        );
+        debugObj.path = `${debugObj.path}/Array`;
+        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
     }
 
     let keys = Object.keys(properties);
@@ -57,61 +37,41 @@ const ObjectReapeaterRender = (widget, options, editors) => {
         });
     }
 
-    let localKey = globalKey;
-    let children = [];
-    const changeTreeChildren = isPlainObject(changeTree.children) ? changeTree.children : {};
+    let localIndex = domIndex;
     for (let index = 0; index < keys.length; index++) {
         const objectKey = keys[index];
         const subSchema = properties[objectKey];
         const subValue = (value || {})[objectKey];
         const newValuePath = `${valuePath}/${objectKey}`;
-        const node = ItemRender(widget, {
+        handleValidator({
             ...options,
-            changeTree: changeTreeChildren[objectKey],
-            value: subValue,
-            schema: subSchema,
+            runtimeValue: subValue,
+            parentRuntimeSchema: runtimeSchema,
+            runtimeSchema: subSchema,
+            objectKey,
+            arrayIndex: null,
+            parentRuntimeValue: value,
+            valuePath: newValuePath,
+        });
+        ItemRender(widget, {
+            ...options,
+            runtimeValueNode: { node: value, key: objectKey },
+            runtimeSchema: subSchema,
             handle: {
                 onChange: (val, opt) => {
-                    const data = underControl ? deepClone(value) : value;
-                    options.handle.onChange(Object.assign(data, { [objectKey]: val }), opt);
+                    options.handle.onChange(Object.assign(value, { [objectKey]: val }), opt);
                 },
             },
             objectKey,
             arrayIndex: null,
-            parentSchema: schema,
-            parentValue: value,
+            parentRuntimeSchema: runtimeSchema,
+            parentRuntimeValue: value,
             valuePath: newValuePath,
-            forceUpdate: updatePath && newValuePath.startsWith(updatePath),
-            globalKey: localKey,
-            errorObj: Validator.verify({
-                value: subValue,
-                rootValue,
-                rootSchema,
-                parentSchema: schema,
-                schema: subSchema,
-                objectKey,
-                formProps,
-                arrayIndex: null,
-                parentValue: value,
-            }),
+            domIndex: localIndex,
             // using for custom object child widgetShcema
             childEditor: getEditor(editors, objectKey),
-            runtime: {
-                ...runtime,
-                valueParent: runtime.valueParent[runtime.valueKey],
-                valueKey: objectKey,
-            },
-            debug: debug ? { path: `${debug.path}[${objectKey}]` } : null,
+            debug: debug ? { path: `${debugObj.path}[${objectKey}]` } : null,
         });
-        if (isArrayLikeObject(node)) {
-            localKey += node.length;
-            children = children.concat(node);
-        } else {
-            localKey++;
-            children.push(node);
-        }
     }
-
-    return children;
 };
 export default ObjectReapeaterRender;
