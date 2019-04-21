@@ -73,10 +73,13 @@ const ControlRender = (controlWidget, widget, options) => {
         let localIndex = domIndex;
         const loopLen = (controlWidget.children || []).length || 0;
         for (let index = 0; index < loopLen; index++) {
-            debug && (debugObj.inLoop = true);
-            options.domIndex = localIndex;
             dataSource.children[index] = {};
-            ControlRender(controlWidget.children[index], widget, options);
+            debug && (debugObj.inLoop = true);
+            ControlRender(controlWidget.children[index], widget, {
+                ...options,
+                dataSource: dataSource.children[index],
+                domIndex: localIndex,
+            });
             localIndex += dataSource.children[index].domLength;
         }
 

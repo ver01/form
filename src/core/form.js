@@ -119,7 +119,7 @@ export default class Form extends Component {
             this.shouldUpdate = true;
         }
 
-        // rootProps
+        // formProps
         if (!isEqualWithDeep(newOther, other)) {
             this.shouldUpdate = true;
         }
@@ -174,7 +174,7 @@ export default class Form extends Component {
         // this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
 
         const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, formOption } = this.state;
-        const { rootRuntimeSchema, rootRuntimeValueObj, rootRuntimeError, props: rootProps, rootControlCache } = this;
+        const { rootRuntimeSchema, rootRuntimeValueObj, rootRuntimeError, props: formProps, rootControlCache } = this;
 
         const dataSource = {};
 
@@ -188,7 +188,7 @@ export default class Form extends Component {
                 rootRawReadonlyValue,
                 rootRuntimeValue: rootRuntimeValueObj.root,
                 rootRuntimeError,
-                rootProps,
+                formProps,
                 formOption,
                 rootControlCache,
                 dataSource,

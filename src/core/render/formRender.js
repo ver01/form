@@ -1,4 +1,5 @@
-import { handleRef, handleXofAndValue, handleValidator } from "../../schemaUtils";
+import { handleRef, handleXofAndValue } from "../../schemaUtils";
+import handleValidator from "../validator";
 import { getByPath } from "../../utils";
 import { getWidget } from "../tools";
 import RootRender from "./root";
@@ -15,7 +16,7 @@ const FormRender = function(options, bypassSchemaHandle = false, isRoot = false)
     }
 
     if (!isRoot) {
-        handleValidator(options, ThemeCache);
+        handleValidator(options);
     }
 
     const { widget } = getWidget(

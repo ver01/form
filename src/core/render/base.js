@@ -1,80 +1,32 @@
-import React from "react";
-import { scmGetProps } from "../tools";
-import LeafHoc from "../hoc/leaf";
-import { isArrayLikeObject } from "../../vendor/lodash";
+import dsMaker from "./dsMaker";
 
-export const leafs = (widget, coreOpt, children, key, option = {}) => {
-    const { holder = false, caller = "" } = option;
-    const { changeTree = {}, debug, forceUpdate } = coreOpt;
-    const { hasChange = true } = changeTree;
-    const props = {
-        propsGenerator: scmGetProps(widget, coreOpt),
-        hasChange,
-        forceUpdate,
-        value: coreOpt.value,
-        underControl: coreOpt.underControl,
-        key,
-        handle: {
-            ...coreOpt.handle,
-        },
-        debug,
-    };
-
-    if (holder || widget.children) {
-        if (widget.component) {
-            return (
-                <LeafHoc componet={widget.component} {...props} caller={`H-${caller}`}>
-                    {children}
-                </LeafHoc>
-            );
-        }
-        return children;
-    } else if (widget.component) {
-        return <LeafHoc componet={widget.component} {...props} caller={`L-${caller}`} />;
-    }
-
-    return null;
-};
-
-const BaseRender = function(widget, coreOpt) {
-    const { globalKey, debug } = coreOpt;
+const BaseRender = function(widget, options) {
+    const { debug, debugObj, runtimeValueNode, domIndex, arrayIndex, objectKey, dataSource } = options;
     if (debug) {
-        if (debug.inLoop) {
-            debug.inLoop = false;
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
         } else {
-            debug.path = `${debug.path}/Base`;
-            console.log(
-                "%c%s %cChange:%o %cValue:%o",
-                "color:green",
-                debug.path,
-                "color:blue",
-                coreOpt.changeTree,
-                "color:blue",
-                coreOpt.value
-            );
+            debugObj.path = `${debugObj.path}/Base`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
         }
     }
 
-    let localKey = globalKey;
-    let nodeChildren = [];
+    dataSource.children = [];
+    let localIndex = domIndex;
     const loopLen = (widget.children || []).length || 0;
     for (let index = 0; index < loopLen; index++) {
-        const child = widget.children[index];
-        debug && (debug.inLoop = true);
-        const subNodes = BaseRender(child, { ...coreOpt, globalKey: localKey });
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
-        } else {
-            localKey++;
-            nodeChildren.push(subNodes);
-        }
+        dataSource.children[index] = {};
+        debug && (debugObj.inLoop = true);
+        BaseRender(widget.children[index], {
+            ...options,
+            dataSource: dataSource.children[index],
+            domIndex: localIndex,
+        });
+        localIndex += dataSource.children[index].domLength;
     }
 
-    return leafs(widget, coreOpt, nodeChildren, globalKey, {
-        caller: `Base-${coreOpt.arrayIndex === null ? "" : coreOpt.arrayIndex}${
-            coreOpt.objectKey === null ? "" : coreOpt.objectKey
-        }`,
+    dsMaker(dataSource, widget, options, {
+        caller: `Base-${arrayIndex === null ? "" : arrayIndex}${objectKey === null ? "" : objectKey}`,
     });
 };
 export default BaseRender;

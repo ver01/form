@@ -10,6 +10,10 @@ export function setCache(cache, type, key, value) {
     Object.assign(cache[type][key], value);
 }
 
+export function deleteCache(cache, type, key) {
+    cache[type] && delete cache[type][key];
+}
+
 export function getNodeValue(node) {
     return node.node ? node.node[node.key] : undefined;
 }

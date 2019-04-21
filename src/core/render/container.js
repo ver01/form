@@ -1,48 +1,37 @@
 import RepeaterRender from "./repeater";
-import { leafs } from "./base";
-import { isArrayLikeObject } from "../../vendor/lodash";
+import dsMaker from "./dsMaker";
 
-const containerRender = (widget, coreOpt, formRender) => {
-    const { globalKey, debug } = coreOpt;
+const containerRender = (widget, options) => {
+    const { domIndex, debug, debugObj, runtimeValueNode, dataSource } = options;
     if (debug) {
-        if (debug.inLoop) {
-            debug.inLoop = false;
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
         } else {
-            debug.path = `${debug.path}/Container`;
-            console.log(
-                "%c%s %cChange:%o %cValue:%o",
-                "color:green",
-                debug.path,
-                "color:blue",
-                coreOpt.changeTree,
-                "color:blue",
-                coreOpt.value
-            );
+            debugObj.path = `${debugObj.path}/Container`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
         }
     }
 
     if (widget.mode === "repeaterHolder") {
-        const children = RepeaterRender(widget, coreOpt, formRender);
-        return leafs(widget, coreOpt, children, globalKey, { holder: true, caller: "Container" });
-    }
-
-    let localKey = globalKey;
-    let nodeChildren = [];
-    const loopLen = (widget.children || []).length || 0;
-    for (let index = 0; index < loopLen; index++) {
-        const child = widget.children[index];
-        debug && (debug.inLoop = true);
-        const subNodes = containerRender(child, { ...coreOpt, globalKey: localKey }, formRender);
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
-        } else {
-            localKey++;
-            nodeChildren.push(subNodes);
+        RepeaterRender(widget, options);
+        dsMaker(dataSource, widget, options, { holder: true, caller: "Container" });
+    } else {
+        dataSource.children = [];
+        let localIndex = domIndex;
+        const loopLen = (widget.children || []).length || 0;
+        for (let index = 0; index < loopLen; index++) {
+            dataSource.children[index] = {};
+            debug && (debugObj.inLoop = true);
+            containerRender(widget.children[index], {
+                ...options,
+                dataSource: dataSource.children[index],
+                domIndex: localIndex,
+            });
+            localIndex += dataSource.children[index].domLength;
         }
-    }
 
-    return leafs(widget, coreOpt, nodeChildren, globalKey, { caller: "Container" });
+        dsMaker(dataSource, widget, options, { caller: "Container" });
+    }
 };
 
 export default containerRender;

@@ -5,8 +5,12 @@ const RootRender = (widget, options) => {
     const { domIndex, debug, debugObj, runtimeValueNode, dataSource } = options;
     const BYPASS_SCHEMA_HANDLE = true;
     if (debug) {
-        debugObj.path = `${debugObj.path}/Root`;
-        console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
+        } else {
+            debugObj.path = `${debugObj.path}/Root`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", runtimeValueNode);
+        }
     }
 
     if (widget.mode === "editorHolder") {
@@ -18,7 +22,12 @@ const RootRender = (widget, options) => {
         const loopLen = (widget.children || []).length || 0;
         for (let index = 0; index < loopLen; index++) {
             dataSource.children[index] = {};
-            RootRender(dataSource.children[index], { ...options, domIndex: localIndex });
+            debug && (debugObj.inLoop = true);
+            RootRender(widget.children[index], {
+                ...options,
+                dataSource: dataSource.children[index],
+                domIndex: localIndex,
+            });
             localIndex += dataSource.children[index].domLength;
         }
 
