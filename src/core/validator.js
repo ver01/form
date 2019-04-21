@@ -1,10 +1,7 @@
 import { getByPath } from "../utils";
 import { isArrayLikeObject, isPlainObject, isUndefined } from "../vendor/lodash";
-import FormRender from "./render/formRender";
 
-const { ThemeCache } = FormRender;
-
-const handleValidator = options => {
+const handleValidator = (options, ThemeCache) => {
     const {
         runtimeValue,
         rootRawReadonlyValue,
@@ -279,11 +276,11 @@ const handleValidator = options => {
     }
 
     if (
-        ThemeCache.components[parentRuntimeSchema.type] &&
-        ThemeCache.components[parentRuntimeSchema.type].errorObjGenerator &&
+        ThemeCache.components[runtimeSchema.type] &&
+        ThemeCache.components[runtimeSchema.type].errorObjGenerator &&
         errors.length
     ) {
-        errorObj = ThemeCache.components[parentRuntimeSchema.type].errorObjGenerator({ errors });
+        errorObj = ThemeCache.components[runtimeSchema.type].errorObjGenerator({ errors });
         rootRuntimeError[valuePath] = errorObj;
     }
 };

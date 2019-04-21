@@ -1,7 +1,7 @@
 import RepeaterRender from "./repeater";
 import dsMaker from "./dsMaker";
 
-const containerRender = (widget, options) => {
+const containerRender = (widget, options, ThemeCache) => {
     const { domIndex, debug, debugObj, runtimeValueNode, dataSource } = options;
     if (debug) {
         if (debugObj.inLoop) {
@@ -13,7 +13,7 @@ const containerRender = (widget, options) => {
     }
 
     if (widget.mode === "repeaterHolder") {
-        RepeaterRender(widget, options);
+        RepeaterRender(widget, options, ThemeCache);
         dsMaker(dataSource, widget, options, { holder: true, caller: "Container" });
     } else {
         dataSource.children = [];
@@ -22,11 +22,15 @@ const containerRender = (widget, options) => {
         for (let index = 0; index < loopLen; index++) {
             dataSource.children[index] = {};
             debug && (debugObj.inLoop = true);
-            containerRender(widget.children[index], {
-                ...options,
-                dataSource: dataSource.children[index],
-                domIndex: localIndex,
-            });
+            containerRender(
+                widget.children[index],
+                {
+                    ...options,
+                    dataSource: dataSource.children[index],
+                    domIndex: localIndex,
+                },
+                ThemeCache
+            );
             localIndex += dataSource.children[index].domLength;
         }
 

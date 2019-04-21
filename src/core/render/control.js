@@ -4,7 +4,7 @@ import ContainerRender from "./container";
 import BaseRender from "./base";
 import dsMaker from "./dsMaker";
 
-const ControlRender = (controlWidget, widget, options) => {
+const ControlRender = (controlWidget, widget, options, ThemeCache) => {
     const { rootControlCache } = options;
     const {
         runtimeValueNode,
@@ -40,7 +40,7 @@ const ControlRender = (controlWidget, widget, options) => {
     if (controlWidget.mode === "editorHolder") {
         switch (runtimeSchema.type) {
             case "object":
-                ContainerRender(widget, options);
+                ContainerRender(widget, options, ThemeCache);
                 break;
             case "array": {
                 Object.assign(handle, {
@@ -57,7 +57,7 @@ const ControlRender = (controlWidget, widget, options) => {
                         options.handle.onChange(ret, { updatePath: options.valuePath });
                     },
                 });
-                ContainerRender(widget, options);
+                ContainerRender(widget, options, ThemeCache);
                 break;
             }
             default:
@@ -75,11 +75,16 @@ const ControlRender = (controlWidget, widget, options) => {
         for (let index = 0; index < loopLen; index++) {
             dataSource.children[index] = {};
             debug && (debugObj.inLoop = true);
-            ControlRender(controlWidget.children[index], widget, {
-                ...options,
-                dataSource: dataSource.children[index],
-                domIndex: localIndex,
-            });
+            ControlRender(
+                controlWidget.children[index],
+                widget,
+                {
+                    ...options,
+                    dataSource: dataSource.children[index],
+                    domIndex: localIndex,
+                },
+                ThemeCache
+            );
             localIndex += dataSource.children[index].domLength;
         }
 

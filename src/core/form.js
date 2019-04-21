@@ -29,7 +29,7 @@ export default class Form extends Component {
     constructor(props) {
         super(props);
 
-        const { value, defaultValue, schema = null, option = {}, debug = false } = props;
+        const { value, defaultValue, schema = {}, option = {}, debug = false } = props;
         let underControl = isUndefined(value) ? (isUndefined(defaultValue) ? null : false) : true;
 
         this.state = {
@@ -137,7 +137,11 @@ export default class Form extends Component {
     shouldComponentUpdate(nextProps) {
         const change = this.shouldUpdate;
         if (nextProps.debug && change) {
-            console.log("%c%s", "color:blue", `==== by ${change}`);
+            console.log(
+                "%c%s",
+                "color:blue",
+                `============================= by ${change} =============================`
+            );
         }
         this.shouldUpdate = false;
 
@@ -197,7 +201,7 @@ export default class Form extends Component {
 
                 runtimeSchema: rootRuntimeSchema,
                 runtimeValueNode: { node: rootRuntimeValueObj, key: "root" },
-                parentRuntimeSchema: null,
+                parentRuntimeSchema: {},
                 parentRuntimeValue: undefined,
                 childEditor: null,
                 handle: {

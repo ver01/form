@@ -1,4 +1,4 @@
-import { getByPath } from "../utils";
+import { getByPath, getNodeValue } from "../utils";
 import { isArrayLikeObject, isPlainObject } from "../vendor/lodash";
 import FormRender from "./render/formRender";
 
@@ -8,20 +8,54 @@ export const register = function(theme, cache) {
     });
 };
 
-const optionMapping = (widget, option) => {
-    // if (typeof widget.formatter === "function") {
-    //     options.value = widget.formatter(options.value);
-    // }
-    // if (typeof widget.normalizer === "function") {
-    //     options.handle.onChange = (val, opt) => rawOnchage(widget.normalizer(val), opt);
-    // }
+const optionMapping = (widget, options) => {
     const {
+        rootRuntimeSchema,
+        rootRuntimeValue,
+        rootRuntimeError,
+        formProps,
+        formOption,
+        runtimeSchema,
+        runtimeValueNode,
+        parentRuntimeSchema,
+        parentRuntimeValue,
+        objectKey,
+        arrayIndex,
+        debug,
+        handle: { canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove },
+        valuePath,
+    } = options;
+
+    let {
         handle: { onChange },
-    } = option;
+    } = options;
+
+    let value = getNodeValue(runtimeValueNode);
+    if (typeof widget.formatter === "function") {
+        value = widget.formatter(value);
+    }
+    if (typeof widget.normalizer === "function") {
+        let rawOnchage = onChange;
+        onChange = val => rawOnchage(widget.normalizer(val));
+    }
+
+    const errorObj = rootRuntimeError[valuePath];
+
     return {
-        handle: {
-            onChange,
-        },
+        rootSchema: rootRuntimeSchema,
+        rootValue: rootRuntimeValue,
+        rootError: rootRuntimeError,
+        errorObj,
+        formProps,
+        formOption,
+        schema: runtimeSchema,
+        value,
+        parentSchema: parentRuntimeSchema,
+        parentValue: parentRuntimeValue,
+        handle: { onChange, canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove },
+        objectKey,
+        arrayIndex,
+        debug,
     };
 };
 
@@ -104,21 +138,25 @@ export const getWidget = function(node, runtimeSchema, parentRuntimeSchema, widg
         return widgetForChild;
     }
 
-    if (isArrayLikeObject(node.getWidget)) {
-        let widgetName, widgetData;
-        node.getWidget.some(fun => {
-            if (typeof fun === "function") {
-                const ret = fun({ runtimeSchema, parentRuntimeSchema });
-                if (ret) {
-                    widgetName = ret.widgetName;
-                    widgetData = ret.widgetData;
-                    return true;
+    if (node) {
+        if (isArrayLikeObject(node.getWidget)) {
+            let widgetName, widgetData;
+            node.getWidget.some(fun => {
+                if (typeof fun === "function") {
+                    const ret = fun({ runtimeSchema, parentRuntimeSchema });
+                    if (ret) {
+                        widgetName = ret.widgetName;
+                        widgetData = ret.widgetData;
+                        return true;
+                    }
                 }
+            });
+            if (widgetName && (widget = node.widgets[widgetName])) {
+                return { widget, widgetName, widgetData };
             }
-        });
-        if (widgetName && (widget = node.widgets[widgetName])) {
-            return { widget, widgetName, widgetData };
         }
+        return { widget: node.widgets.default, widgetName: "default", widgetData: null };
+    } else {
+        return { widget: { component: null } };
     }
-    return { widget: node.widgets.default, widgetName: "default", widgetData: null };
 };

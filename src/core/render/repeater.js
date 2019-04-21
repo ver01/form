@@ -1,14 +1,14 @@
 import ArrayReapeaterRender from "./arrayRepeater";
 import ObjectReapeaterRender from "./objectRepeater";
 
-const RepeaterRender = (widget, options) => {
+const RepeaterRender = (widget, options, ThemeCache) => {
     const { isArray, isObject } = options;
     const { editor = null, repeater = {} } = widget;
     if (isArray) {
-        ArrayReapeaterRender(repeater, options, editor);
+        ArrayReapeaterRender(repeater, options, editor, ThemeCache);
     }
     if (isObject) {
-        ObjectReapeaterRender(repeater, options, editor);
+        ObjectReapeaterRender(repeater, options, editor, ThemeCache);
     }
 };
 

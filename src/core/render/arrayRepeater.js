@@ -4,7 +4,7 @@ import { getItemSchema, getByPath, getCache, setCache, deleteCache, getNodeValue
 import handleValidator from "../validator";
 import ItemRender from "./item";
 
-const ArrayReapeaterRender = (widget, options, editors) => {
+const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
     const {
         runtimeSchema,
         domIndex,
@@ -46,16 +46,19 @@ const ArrayReapeaterRender = (widget, options, editors) => {
         const arrayIndexPrev = arrayIndex - 1;
         const itemSchema = getItemSchema(runtimeSchema, arrayIndex, rootRuntimeSchema);
         const { type: itemType } = itemSchema;
-        handleValidator({
-            ...options,
-            runtimeValue: subValue,
-            parentRuntimeSchema: runtimeSchema,
-            parentRuntimeValue: value,
-            runtimeSchema: itemSchema,
-            valuePath: `${valuePath}/${arrayIndex}`,
-            objectKey: null,
-            arrayIndex,
-        });
+        handleValidator(
+            {
+                ...options,
+                runtimeValue: subValue,
+                parentRuntimeSchema: runtimeSchema,
+                parentRuntimeValue: value,
+                runtimeSchema: itemSchema,
+                valuePath: `${valuePath}/${arrayIndex}`,
+                objectKey: null,
+                arrayIndex,
+            },
+            ThemeCache
+        );
         ItemRender(widget, {
             ...options,
             runtimeValueNode: { node: value, key: arrayIndex },

@@ -16,7 +16,7 @@ const FormRender = function(options, bypassSchemaHandle = false, isRoot = false)
     }
 
     if (!isRoot) {
-        handleValidator(options);
+        handleValidator(options, ThemeCache);
     }
 
     const { widget } = getWidget(
@@ -32,7 +32,7 @@ const FormRender = function(options, bypassSchemaHandle = false, isRoot = false)
         RootRender(widget, options);
     } else {
         const { widget: controlWidget } = getWidget(ThemeCache.components.control);
-        ControlRender(controlWidget, widget, options);
+        ControlRender(controlWidget, widget, options, ThemeCache);
     }
 };
 

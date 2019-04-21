@@ -1,4 +1,4 @@
-import { isArrayLikeObject, isPlainObject, deepClone } from "./vendor/lodash";
+import { isArrayLikeObject, isPlainObject, isUndefined, deepClone } from "./vendor/lodash";
 import { dealSomeOf, dealDependencies } from "./core/render/logicMods";
 import { getNodeValue, setNodeValue, setCache } from "./utils";
 
@@ -243,42 +243,46 @@ export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
 
 export function initValue(options) {
     const { runtimeSchema, runtimeValueNode, rootRawReadonlySchema } = options;
-    const value = getNodeValue(runtimeValueNode);
+    let value = getNodeValue(runtimeValueNode);
     if (runtimeSchema.hasOwnProperty("const")) {
-        return deepClone(runtimeSchema.const);
+        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.const));
     } else if (isArrayLikeObject(runtimeSchema.enum) && runtimeSchema.enum.length === 1) {
-        return deepClone(runtimeSchema.enum[0]);
-    }
-    let ret = runtimeSchema.default;
-    if (typeof value !== "undefined") {
-        ret = value;
-    }
-    if (runtimeSchema.type === "array") {
-        if (!isArrayLikeObject(ret)) {
-            ret = [];
-        }
-        const length = ret.length;
-        for (let index = 0; index < length; index++) {
-            ret[index] = initValue(
-                ret[index],
-                getItemSchema(runtimeSchema, index, rootRawReadonlySchema),
-                rootRawReadonlySchema
-            );
-        }
-    }
-    if (runtimeSchema.type === "object") {
-        if (typeof ret !== "object" || ret === null) {
-            ret = {};
-        }
-        const keys = Object.keys(runtimeSchema.properties || {});
-        keys.map(key => {
-            const val = initValue(ret[key], runtimeSchema.properties[key], rootRawReadonlySchema);
-            if (typeof val !== "undefined") {
-                ret[key] = val;
+        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.enum[0]));
+    } else if (isUndefined(value) && !isUndefined(runtimeSchema.default)) {
+        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.default));
+    } else {
+        if (runtimeSchema.type === "array") {
+            if (!isArrayLikeObject(value)) {
+                value = [];
+                setNodeValue(runtimeValueNode, []);
             }
-        });
+            const length = value.length;
+            for (let index = 0; index < length; index++) {
+                initValue({
+                    ...options,
+                    runtimeValueNode: { node: value, key: index },
+                    runtimeSchema: getItemSchema(runtimeSchema, index, rootRawReadonlySchema),
+                    rootRawReadonlySchema,
+                });
+            }
+        } else if (runtimeSchema.type === "object") {
+            if (!isPlainObject(value)) {
+                value = {};
+                setNodeValue(runtimeValueNode, {});
+            }
+            const keys = Object.keys(runtimeSchema.properties || {});
+            keys.map(key => {
+                if (!isUndefined(value[key])) {
+                    initValue({
+                        ...options,
+                        runtimeValueNode: { node: value, key },
+                        runtimeSchema: runtimeSchema.properties[key],
+                        rootRawReadonlySchema,
+                    });
+                }
+            });
+        }
     }
-    setNodeValue(runtimeValueNode, ret);
 }
 
 export const schemaMerge = (target, ...merges) => {

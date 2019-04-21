@@ -3,7 +3,7 @@ import { getEditor } from "../tools";
 import handleValidator from "../validator";
 import ItemRender from "./item";
 
-const ObjectReapeaterRender = (widget, options, editors) => {
+const ObjectReapeaterRender = (widget, options, editors, ThemeCache) => {
     const { runtimeSchema, domIndex, runtimeValueNode, schemaOption, valuePath, debug, debugObj } = options;
     const { properties = {} } = runtimeSchema;
     const value = getNodeValue(runtimeValueNode);
@@ -43,16 +43,19 @@ const ObjectReapeaterRender = (widget, options, editors) => {
         const subSchema = properties[objectKey];
         const subValue = (value || {})[objectKey];
         const newValuePath = `${valuePath}/${objectKey}`;
-        handleValidator({
-            ...options,
-            runtimeValue: subValue,
-            parentRuntimeSchema: runtimeSchema,
-            runtimeSchema: subSchema,
-            objectKey,
-            arrayIndex: null,
-            parentRuntimeValue: value,
-            valuePath: newValuePath,
-        });
+        handleValidator(
+            {
+                ...options,
+                runtimeValue: subValue,
+                parentRuntimeSchema: runtimeSchema,
+                runtimeSchema: subSchema,
+                objectKey,
+                arrayIndex: null,
+                parentRuntimeValue: value,
+                valuePath: newValuePath,
+            },
+            ThemeCache
+        );
         ItemRender(widget, {
             ...options,
             runtimeValueNode: { node: value, key: objectKey },
