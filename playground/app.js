@@ -72,14 +72,14 @@ function FormModeSelector({ value, select }) {
                     writeBack: {
                         title: "WriteBack",
                         type: "boolean",
-                        $vf_ext: {
+                        $vf_opt: {
                             option: {
                                 hideBy: ({ parentValue }) => !parentValue.underControl,
                             },
                         },
                     },
                 },
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         layout: "inline",
                     },
@@ -182,7 +182,7 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            underControl: false,
+            underControl: true,
             writeBack: true,
         };
     }
@@ -293,7 +293,7 @@ class App extends Component {
                                 }
                             },
                         }}
-                        debug
+                        // debug
                     />
                 </div>
             </div>

@@ -104,7 +104,7 @@ module.exports = {
                                     "Do you want to get rid of any?": {
                                         title: "Do you want to get rid of any?",
                                         type: "boolean",
-                                        $vf_ext: {
+                                        $vf_opt: {
                                             widget: "radio",
                                         },
                                     },

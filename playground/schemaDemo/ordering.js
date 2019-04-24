@@ -3,14 +3,14 @@ module.exports = {
         title: "A registration form",
         type: "object",
         required: ["firstName", "lastName"],
-        $vf_ext: {
+        $vf_opt: {
             option: { order: ["firstName", "lastName", "*", "password"] },
         },
         properties: {
             password: {
                 type: "string",
                 title: "Password",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "password",
                 },
             },
@@ -21,7 +21,7 @@ module.exports = {
             bio: {
                 type: "string",
                 title: "Bio",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "textarea",
                 },
             },

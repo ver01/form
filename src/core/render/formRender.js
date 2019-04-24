@@ -19,23 +19,34 @@ const FormRender = function(options, bypassSchemaHandle = false, isRoot = false)
         handleValidator(options, ThemeCache);
     }
 
-    const { widget } = getWidget(
+    const widgetObj = getWidget(
         isRoot ? ThemeCache.components.root : ThemeCache.components[runtimeSchema.type],
         runtimeSchema,
         parentRuntimeSchema,
         widgetForChild
     );
+    const { widget = {}, widgetName = "", widgetData } = widgetObj || {};
+    const { formatter = null, normalizer = null } = widget;
 
-    options.schemaOption = getByPath(runtimeSchema, "$vf_ext/option") || {};
-    options.isArray = runtimeSchema.type === "array";
-    options.isObject = runtimeSchema.type === "object";
+    Object.assign(options, {
+        schemaOption: getByPath(runtimeSchema, "$vf_opt/option") || {},
+        isArray: runtimeSchema.type === "array",
+        isObject: runtimeSchema.type === "object",
+    });
+    Object.assign(options, {
+        widgetName,
+        widgetData,
+        formatter,
+        normalizer,
+    });
 
     if (isRoot) {
         RootRender(widget, options);
     } else {
-        const { widget: controlWidget } = getWidget(ThemeCache.components.control);
-        ControlRender(controlWidget, widget, options, ThemeCache);
+        const controlWidgetObj = getWidget(ThemeCache.components.control);
+        ControlRender(controlWidgetObj, widget, options, ThemeCache);
     }
+    return { childFormRenderOptions: options };
 };
 
 FormRender.ThemeCache = ThemeCache;

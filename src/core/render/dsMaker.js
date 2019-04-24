@@ -13,13 +13,6 @@ const dsMaker = (dataSource, widget, options, debugInfo) => {
         );
     dataSource.component = widget.component;
     dataSource.props = scmGetProps(widget, options);
-    if (widget.component === null) {
-        dataSource.domLength = (dataSource.children || [])
-            .map(it => (it.children || []).length)
-            .reduce((a, b) => a + b, 0);
-    } else {
-        dataSource.domLength = 1;
-    }
 };
 
 export default dsMaker;

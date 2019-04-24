@@ -2,7 +2,7 @@ import { getNodeValue } from "../../utils";
 import dsMaker from "./dsMaker";
 
 const BaseRender = function(widget, options) {
-    const { debug, debugObj, runtimeValueNode, domIndex, arrayIndex, objectKey, dataSource } = options;
+    const { debug, debugObj, runtimeValueNode, arrayIndex, objectKey, dataSource } = options;
     if (debug) {
         if (debugObj.inLoop) {
             debugObj.inLoop = false;
@@ -13,7 +13,6 @@ const BaseRender = function(widget, options) {
     }
 
     dataSource.children = [];
-    let localIndex = domIndex;
     const loopLen = (widget.children || []).length || 0;
     for (let index = 0; index < loopLen; index++) {
         dataSource.children[index] = {};
@@ -21,11 +20,8 @@ const BaseRender = function(widget, options) {
         BaseRender(widget.children[index], {
             ...options,
             dataSource: dataSource.children[index],
-            domIndex: localIndex,
         });
-        localIndex += dataSource.children[index].domLength;
     }
-
     dsMaker(dataSource, widget, options, {
         caller: `Base${arrayIndex === null ? "" : `-${arrayIndex}`}${objectKey === null ? "" : `-${objectKey}`}`,
     });

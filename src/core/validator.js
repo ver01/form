@@ -1,9 +1,9 @@
-import { getByPath } from "../utils";
+import { getByPath, getNodeValue } from "../utils";
 import { isArrayLikeObject, isPlainObject, isUndefined } from "../vendor/lodash";
 
 const handleValidator = (options, ThemeCache) => {
     const {
-        runtimeValue,
+        runtimeValueNode,
         rootRawReadonlyValue,
         rootRuntimeSchema,
         parentRuntimeSchema,
@@ -15,6 +15,7 @@ const handleValidator = (options, ThemeCache) => {
         objectKey,
         arrayIndex,
     } = options;
+    const value = getNodeValue(runtimeValueNode);
     const errors = [];
     let errorObj = null;
     const valueType = typeof value;
@@ -43,9 +44,9 @@ const handleValidator = (options, ThemeCache) => {
         Number.isInteger(runtimeSchema.minLength) &&
         runtimeSchema.type === "string" &&
         valueType === "string" &&
-        runtimeValue.length < runtimeSchema.minLength
+        value.length < runtimeSchema.minLength
     ) {
-        errorsPush(minLength({ value: runtimeValue, ruleValue: runtimeSchema.minLength, schema: runtimeSchema }));
+        errorsPush(minLength({ value, ruleValue: runtimeSchema.minLength, schema: runtimeSchema }));
     }
 
     // require check
@@ -57,75 +58,61 @@ const handleValidator = (options, ThemeCache) => {
     ) {
         switch (runtimeSchema.type) {
             case "string": {
-                if (!runtimeValue) {
-                    errorsPush(required({ value: runtimeValue, ruleValue: true, schema: runtimeSchema }));
+                if (!value) {
+                    errorsPush(required({ value, ruleValue: true, schema: runtimeSchema }));
                 }
                 break;
             }
             default:
-                if (isUndefined(runtimeValue)) {
-                    errorsPush(required({ value: runtimeValue, ruleValue: true, schema: runtimeSchema }));
+                if (isUndefined(value)) {
+                    errorsPush(required({ value, ruleValue: true, schema: runtimeSchema }));
                 }
                 break;
         }
     }
 
     // type check
-    if (!isUndefined(valueType)) {
+    if (valueType !== "undefined") {
         switch (runtimeSchema.type) {
             case "string": {
                 if (valueType !== "string") {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "number": {
                 if (valueType !== "number") {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "integer": {
-                if (valueType !== "number" || !Number.isInteger(runtimeValue)) {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                if (valueType !== "number" || !Number.isInteger(value)) {
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "boolean": {
                 if (valueType !== "boolean") {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "null": {
-                if (runtimeValue !== null) {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                if (value !== null) {
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "array": {
-                if (!isArrayLikeObject(runtimeValue)) {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                if (!isArrayLikeObject(value)) {
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
             case "object": {
-                if (!isPlainObject(runtimeValue)) {
-                    errorsPush(
-                        typeofValidate({ value: runtimeValue, ruleValue: runtimeSchema.type, schema: runtimeSchema })
-                    );
+                if (!isPlainObject(value)) {
+                    errorsPush(typeofValidate({ value, ruleValue: runtimeSchema.type, schema: runtimeSchema }));
                 }
                 break;
             }
@@ -136,35 +123,35 @@ const handleValidator = (options, ThemeCache) => {
     if (
         minItems &&
         Number.isInteger(runtimeSchema.minItems) &&
-        isArrayLikeObject(runtimeValue) &&
-        runtimeValue.length < runtimeSchema.minItems
+        isArrayLikeObject(value) &&
+        value.length < runtimeSchema.minItems
     ) {
-        errorsPush(minItems({ value: runtimeValue, ruleValue: runtimeSchema.minItems, schema: runtimeSchema }));
+        errorsPush(minItems({ value, ruleValue: runtimeSchema.minItems, schema: runtimeSchema }));
     }
 
     // maxItems check
     if (
         maxItems &&
         Number.isInteger(runtimeSchema.maxItems) &&
-        isArrayLikeObject(runtimeValue) &&
-        runtimeValue.length > runtimeSchema.maxItems
+        isArrayLikeObject(value) &&
+        value.length > runtimeSchema.maxItems
     ) {
-        errorsPush(maxItems({ value: runtimeValue, ruleValue: runtimeSchema.maxItems, schema: runtimeSchema }));
+        errorsPush(maxItems({ value, ruleValue: runtimeSchema.maxItems, schema: runtimeSchema }));
     }
 
     // minimum check
     if (minimum && ["number", "integer"].includes(runtimeSchema.type)) {
         const num = Number(runtimeSchema.minimum);
-        if (!Number.isNaN(num) && runtimeValue < num) {
-            errorsPush(minimum({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
+        if (!Number.isNaN(num) && value < num) {
+            errorsPush(minimum({ value, ruleValue: num, schema: runtimeSchema }));
         }
     }
 
     // maximum check
     if (maximum && ["number", "integer"].includes(runtimeSchema.type)) {
         const num = Number(runtimeSchema.maximum);
-        if (!Number.isNaN(num) && runtimeValue > num) {
-            errorsPush(maximum({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
+        if (!Number.isNaN(num) && value > num) {
+            errorsPush(maximum({ value, ruleValue: num, schema: runtimeSchema }));
         }
     }
 
@@ -172,8 +159,8 @@ const handleValidator = (options, ThemeCache) => {
     if (multipleOf && ["number", "integer"].includes(runtimeSchema.type)) {
         const num = Number(runtimeSchema.multipleOf);
         if (!Number.isNaN(num)) {
-            if (runtimeValue % num !== 0) {
-                errorsPush(multipleOf({ value: runtimeValue, ruleValue: num, schema: runtimeSchema }));
+            if (value % num !== 0) {
+                errorsPush(multipleOf({ value, ruleValue: num, schema: runtimeSchema }));
             }
         }
     }
@@ -184,20 +171,16 @@ const handleValidator = (options, ThemeCache) => {
             case "email":
                 {
                     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                    if (runtimeValue && !re.test(String(runtimeValue).toLowerCase())) {
-                        errorsPush(
-                            format({ value: runtimeValue, ruleValue: runtimeSchema.format, schema: runtimeSchema })
-                        );
+                    if (value && !re.test(String(value).toLowerCase())) {
+                        errorsPush(format({ value, ruleValue: runtimeSchema.format, schema: runtimeSchema }));
                     }
                 }
                 break;
             case "uri":
                 {
                     const re = /^[-a-zA-Z0-9@:%_+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&//=]*)?$/;
-                    if (runtimeValue && !re.test(String(runtimeValue).toLowerCase())) {
-                        errorsPush(
-                            format({ value: runtimeValue, ruleValue: runtimeSchema.format, schema: runtimeSchema })
-                        );
+                    if (value && !re.test(String(value).toLowerCase())) {
+                        errorsPush(format({ value, ruleValue: runtimeSchema.format, schema: runtimeSchema }));
                     }
                 }
                 break;
@@ -209,8 +192,8 @@ const handleValidator = (options, ThemeCache) => {
     // string pattern check
     if (pattern && runtimeSchema.type === "string" && !isUndefined(runtimeSchema.pattern)) {
         const ret = new RegExp(runtimeSchema.pattern);
-        if (!ret.test(runtimeValue)) {
-            errorsPush(pattern({ value: runtimeValue, ruleValue: runtimeSchema.pattern, schema: runtimeSchema }));
+        if (!ret.test(value)) {
+            errorsPush(pattern({ value, ruleValue: runtimeSchema.pattern, schema: runtimeSchema }));
         }
     }
 
@@ -222,10 +205,10 @@ const handleValidator = (options, ThemeCache) => {
         isArrayLikeObject(parentRuntimeValue) &&
         arrayIndex
     ) {
-        const cmp = JSON.stringify(runtimeValue);
+        const cmp = JSON.stringify(value);
         for (let i = 0; i < arrayIndex; i++) {
             if (cmp === JSON.stringify(parentRuntimeValue[i])) {
-                errorsPush(uniqueItems({ value: runtimeValue, ruleValue: i + 1, schema: runtimeSchema }));
+                errorsPush(uniqueItems({ value, ruleValue: i + 1, schema: runtimeSchema }));
             }
         }
     }
@@ -235,7 +218,7 @@ const handleValidator = (options, ThemeCache) => {
         parentType === "object" &&
         isPlainObject(parentRuntimeSchema.dependencies) &&
         isPlainObject(parentRuntimeValue) &&
-        ((valueType === "string" && !runtimeValue) || isUndefined(runtimeValue))
+        ((valueType === "string" && !value) || isUndefined(value))
     ) {
         const keys = Object.keys(parentRuntimeSchema.dependencies).filter(
             it =>
@@ -252,7 +235,7 @@ const handleValidator = (options, ThemeCache) => {
             }
             errorsPush(
                 dependencies({
-                    value: runtimeValue,
+                    value,
                     ruleValue: title,
                     schema: parentRuntimeSchema,
                 })
@@ -272,13 +255,13 @@ const handleValidator = (options, ThemeCache) => {
 
     // props validators
     if (formProps && formProps.validators) {
-        const validatorSchema = getByPath(parentRuntimeSchema, "$vf_ext/validate") || {};
+        const validatorSchema = getByPath(parentRuntimeSchema, "$vf_opt/validate") || {};
         const types = Object.keys(validatorSchema);
         types.map(type => {
             if (typeof formProps.validators[type] === "function") {
                 errorsPush(
                     formProps.validators[type]({
-                        value: runtimeValue,
+                        value,
                         rootValue: rootRawReadonlyValue,
                         rootSchema: rootRuntimeSchema,
                         parentSchema: parentRuntimeSchema,

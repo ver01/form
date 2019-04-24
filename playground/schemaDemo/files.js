@@ -6,14 +6,14 @@ module.exports = {
             file: {
                 type: "string",
                 title: "Single file",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "uploader",
                 },
             },
             file2: {
                 type: "string",
                 title: "Single file(with default value)",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "uploader",
                 },
             },
@@ -23,7 +23,7 @@ module.exports = {
                 items: {
                     type: "string",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "uploader",
                 },
             },

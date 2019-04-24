@@ -23,7 +23,7 @@ export class GeoPosition extends Component {
                 <h3>Custom component 1 - By register widget</h3>
                 <p>
                     I'm registered as <code>localisation</code> in app.js file. And referenced in
-                    <code>schema</code> as the <code>$vf_ext.widget</code> to use for this schema. Custom Component need
+                    <code>schema</code> as the <code>$vf_opt.widget</code> to use for this schema. Custom Component need
                     2 props: <code>props.value</code> and <code>props.onChange</code>
                 </p>
                 <div className="row">

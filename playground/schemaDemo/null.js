@@ -14,7 +14,7 @@ module.exports = {
                 type: "string",
                 title: "A regular string field",
                 default: "Chuck",
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         autoFocus: true,
                     },

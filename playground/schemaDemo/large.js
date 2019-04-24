@@ -20,7 +20,7 @@ module.exports = {
             },
             choice1: {
                 $ref: "#/definitions/largeEnum",
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         placeholder: "Choose one",
                     },

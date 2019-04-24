@@ -26,6 +26,7 @@ export const coreOption = {
         append: () => {},
         remove: () => {},
         // for control
+        hasSchemaControl: true, // child formnode has SchemaList
         schemaList: [{ schema: {}, valid: true, selected: true }], // no control is null
         schemaSelect: ind => {
             /* aform func */
@@ -33,7 +34,7 @@ export const coreOption = {
     },
 
     schemaOption: {
-        // read by schema.$vf_ext.option
+        // read by schema.$vf_opt.option
         // for array:
         orderable: true,
         removable: true,

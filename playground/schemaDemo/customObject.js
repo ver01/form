@@ -33,7 +33,7 @@ module.exports = {
                         minLength: 10,
                     },
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "custom-object",
                 },
             },
@@ -68,7 +68,7 @@ module.exports = {
                         minLength: 10,
                     },
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "custom-object-partly",
                 },
             },

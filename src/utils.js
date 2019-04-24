@@ -7,6 +7,7 @@ export function getCache(cache, type, key) {
 
 export function setCache(cache, type, key, value) {
     cache[type] || (cache[type] = {});
+    cache[type][key] || (cache[type][key] = {});
     Object.assign(cache[type][key], value);
 }
 

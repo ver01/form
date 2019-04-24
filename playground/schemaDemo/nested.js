@@ -25,7 +25,7 @@ module.exports = {
                             type: "string",
                             title: "Task details",
                             description: "Enter the task details",
-                            $vf_ext: {
+                            $vf_opt: {
                                 widget: "textarea",
                             },
                         },

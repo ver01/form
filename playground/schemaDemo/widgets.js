@@ -30,7 +30,7 @@ module.exports = {
                         type: "boolean",
                         title: "checkbox (default)",
                         description: "This is the checkbox-description",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "checkbox",
                         },
                     },
@@ -38,7 +38,7 @@ module.exports = {
                         type: "boolean",
                         title: "radio buttons",
                         description: "This is the radio-description",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "radio",
                         },
                     },
@@ -46,7 +46,7 @@ module.exports = {
                         type: "boolean",
                         title: "select box",
                         description: "This is the select-description",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "select",
                         },
                     },
@@ -63,7 +63,7 @@ module.exports = {
                     textarea: {
                         type: "string",
                         title: "textarea",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "textarea",
                         },
                     },
@@ -72,7 +72,7 @@ module.exports = {
             secret: {
                 type: "string",
                 default: "I'm a hidden string.",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "hidden",
                 },
             },
@@ -80,7 +80,7 @@ module.exports = {
                 type: "string",
                 title: "A disabled field",
                 default: "I am disabled.",
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         disabled: true,
                     },
@@ -90,7 +90,7 @@ module.exports = {
                 type: "string",
                 title: "A readonly field",
                 default: "I am read-only.",
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         readonly: true,
                     },
@@ -100,7 +100,7 @@ module.exports = {
                 title: "Custom widget with options",
                 type: "string",
                 default: "I am yellow",
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         style: {
                             backgroundColor: "yellow",
@@ -114,7 +114,7 @@ module.exports = {
                 type: "string",
                 enum: ["foo", "bar"],
                 enumNames: ["Foo", "Bar"],
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         style: {
                             color: "red",

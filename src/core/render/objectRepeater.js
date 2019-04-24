@@ -1,15 +1,14 @@
 import { getNodeValue } from "../../utils";
 import { getEditor } from "../tools";
-import handleValidator from "../validator";
 import ItemRender from "./item";
 
 const ObjectReapeaterRender = (widget, options, editors, ThemeCache) => {
-    const { runtimeSchema, domIndex, runtimeValueNode, schemaOption, valuePath, debug, debugObj } = options;
+    const { runtimeSchema, runtimeValueNode, schemaOption, valuePath, dataSource, debug, debugObj } = options;
     const { properties = {} } = runtimeSchema;
     const value = getNodeValue(runtimeValueNode);
 
     if (debug) {
-        debugObj.path = `${debugObj.path}/Array`;
+        debugObj.path = `${debugObj.path}/Object`;
         console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
     }
 
@@ -37,25 +36,12 @@ const ObjectReapeaterRender = (widget, options, editors, ThemeCache) => {
         });
     }
 
-    let localIndex = domIndex;
+    dataSource.children = [];
     for (let index = 0; index < keys.length; index++) {
+        dataSource.children[index] = {};
         const objectKey = keys[index];
         const subSchema = properties[objectKey];
-        const subValue = (value || {})[objectKey];
         const newValuePath = `${valuePath}/${objectKey}`;
-        handleValidator(
-            {
-                ...options,
-                runtimeValue: subValue,
-                parentRuntimeSchema: runtimeSchema,
-                runtimeSchema: subSchema,
-                objectKey,
-                arrayIndex: null,
-                parentRuntimeValue: value,
-                valuePath: newValuePath,
-            },
-            ThemeCache
-        );
         ItemRender(widget, {
             ...options,
             runtimeValueNode: { node: value, key: objectKey },
@@ -70,10 +56,10 @@ const ObjectReapeaterRender = (widget, options, editors, ThemeCache) => {
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,
             valuePath: newValuePath,
-            domIndex: localIndex,
+            dataSource: dataSource.children[index],
             // using for custom object child widgetShcema
-            childEditor: getEditor(editors, objectKey),
-            debug: debug ? { path: `${debugObj.path}[${objectKey}]` } : null,
+            widgetForChild: getEditor(editors, objectKey),
+            ...(debug ? { debugObj: { ...debugObj, path: `${debugObj.path}[${objectKey}]` } } : {}),
         });
     }
 };

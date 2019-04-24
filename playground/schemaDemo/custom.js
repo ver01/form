@@ -15,7 +15,7 @@ module.exports = {
                         type: "number",
                     },
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "localisation",
                 },
             },
@@ -28,7 +28,7 @@ module.exports = {
                     type: "string",
                     title: "Color picker",
                     default: "#151ce6",
-                    $vf_ext: {
+                    $vf_opt: {
                         widget: "color",
                     },
                 },

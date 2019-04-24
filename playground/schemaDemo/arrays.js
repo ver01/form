@@ -38,14 +38,14 @@ module.exports = {
                         title: "A string value",
                         type: "string",
                         default: "lorem ipsum",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "textarea",
                         },
                     },
                     {
                         title: "a boolean value",
                         type: "boolean",
-                        $vf_ext: {
+                        $vf_opt: {
                             widget: "select",
                         },
                     },
@@ -53,7 +53,7 @@ module.exports = {
                 additionalItems: {
                     title: "Additional item",
                     type: "number",
-                    $vf_ext: {
+                    $vf_opt: {
                         widget: "updown",
                     },
                 },
@@ -95,7 +95,7 @@ module.exports = {
                     type: "string",
                     default: "lorem ipsum",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         orderable: false,
                     },
@@ -108,7 +108,7 @@ module.exports = {
                     type: "string",
                     default: "lorem ipsum",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         removable: false,
                     },
@@ -121,7 +121,7 @@ module.exports = {
                     type: "string",
                     default: "lorem ipsum",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         appendable: false,
                         orderable: false,
@@ -149,7 +149,7 @@ module.exports = {
                     type: "string",
                     default: "lorem ipsum",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         appendable: false,
                         orderable: false,

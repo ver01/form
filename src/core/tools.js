@@ -8,7 +8,7 @@ export const register = function(theme, cache) {
     });
 };
 
-const optionMapping = (options, widget) => {
+const optionMapping = options => {
     const {
         rootRuntimeSchema,
         rootRuntimeValue,
@@ -22,24 +22,30 @@ const optionMapping = (options, widget) => {
         parentRuntimeValue,
         objectKey,
         arrayIndex,
+        formatter,
+        normalizer,
         debug,
         handle: { canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove },
         valuePath,
+        widgetData,
+        widgetName,
+        schemaList,
+        childFormRenderOptions,
     } = options;
+
+    let hasSchemaControl = childFormRenderOptions && childFormRenderOptions.schemaList ? true : false;
 
     let {
         handle: { onChange },
     } = options;
 
     let value = getNodeValue(runtimeValueNode);
-    if (widget) {
-        if (typeof widget.formatter === "function") {
-            value = widget.formatter(value);
-        }
-        if (typeof widget.normalizer === "function") {
-            let rawOnchage = onChange;
-            onChange = val => rawOnchage(widget.normalizer(val));
-        }
+    if (typeof formatter === "function") {
+        value = formatter(value);
+    }
+    if (typeof normalizer === "function") {
+        const rawOnchage = onChange;
+        onChange = val => rawOnchage(normalizer(val));
     }
 
     const errorObj = rootRuntimeError[valuePath];
@@ -56,9 +62,23 @@ const optionMapping = (options, widget) => {
         value,
         parentSchema: parentRuntimeSchema,
         parentValue: parentRuntimeValue,
-        handle: { onChange, canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove },
+        handle: {
+            hasSchemaControl,
+            onChange,
+            canAppend,
+            canMoveUp,
+            canMoveDown,
+            canRemove,
+            append,
+            moveUp,
+            moveDown,
+            remove,
+        },
         objectKey,
         arrayIndex,
+        widgetData,
+        widgetName,
+        schemaList,
         debug,
     };
 };
@@ -70,7 +90,7 @@ export const scmGetProps = (widget, options) => {
     const nodeProps = { ...props };
 
     if (propsMixinList.length) {
-        const tempProps = getByPath(runtimeSchema, "$vf_ext/props") || {};
+        const tempProps = getByPath(runtimeSchema, "$vf_opt/props") || {};
         Object.keys(tempProps)
             .filter(it => propsMixinList.includes(it))
             .map(key => (nodeProps[key] = tempProps[key]));
@@ -84,7 +104,7 @@ export const scmGetProps = (widget, options) => {
                 if (matchs && matchs[1]) {
                     // when match switch function only
                     if (typeof pIn[key] === "function") {
-                        pOut[matchs[1]] = pIn[key](optionMapping(options, widget));
+                        pOut[matchs[1]] = pIn[key](optionMapping(options));
                     } else {
                         pOut[matchs[1]] = pIn[key];
                     }
@@ -126,7 +146,7 @@ export const getEditor = (editors, key) => {
 export const getWidget = function(node, runtimeSchema, parentRuntimeSchema, widgetForChild) {
     const { ThemeCache } = FormRender;
 
-    const widgetName = getByPath(runtimeSchema, "$vf_ext/widget");
+    const widgetName = getByPath(runtimeSchema, "$vf_opt/widget");
     let widget = widgetName && node.widgets[widgetName];
 
     if (widget) {

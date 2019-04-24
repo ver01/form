@@ -38,7 +38,7 @@ module.exports = {
                 $ref: "#/definitions/node",
             },
         },
-        $vf_ext: {
+        $vf_opt: {
             option: { order: ["shipping_address", "billing_address", "tree"] },
         },
     },

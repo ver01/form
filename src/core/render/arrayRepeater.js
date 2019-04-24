@@ -1,19 +1,18 @@
 import { isArrayLikeObject } from "../../vendor/lodash";
 import { getEditor } from "../tools";
-import { getItemSchema, getByPath, getCache, setCache, deleteCache, getNodeValue } from "../../utils";
-import handleValidator from "../validator";
+import { getByPath, getCache, setCache, deleteCache, getNodeValue } from "../../utils";
+import { getItemSchema } from "../../schemaUtils";
+
 import ItemRender from "./item";
 
 const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
     const {
         runtimeSchema,
-        domIndex,
         runtimeValueNode,
         rootRuntimeSchema,
         rootControlCache,
         valuePath,
         dataSource,
-        runtime,
         debugObj,
         debug,
     } = options;
@@ -28,36 +27,21 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
         console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
     }
 
-    dataSource.children = [];
-    let localIndex = domIndex;
-
     const schemaItemsLen = isArrayLikeObject(runtimeSchema.items) ? runtimeSchema.items.length : 0;
     const arrayLength = value.length;
     const schemaOption = {
         orderable: true,
         addable: true,
         removable: true,
-        ...(getByPath(runtimeSchema, "$vf_ext/option") || {}),
+        ...(getByPath(runtimeSchema, "$vf_opt/option") || {}),
     };
 
+    dataSource.children = [];
     for (let arrayIndex = 0; arrayIndex < arrayLength; arrayIndex++) {
-        const subValue = value[arrayIndex];
+        dataSource.children[arrayIndex] = {};
         const arrayIndexNext = arrayIndex + 1;
         const arrayIndexPrev = arrayIndex - 1;
         const itemSchema = getItemSchema(runtimeSchema, arrayIndex, rootRuntimeSchema);
-        handleValidator(
-            {
-                ...options,
-                runtimeValue: subValue,
-                parentRuntimeSchema: runtimeSchema,
-                parentRuntimeValue: value,
-                runtimeSchema: itemSchema,
-                valuePath: `${valuePath}/${arrayIndex}`,
-                objectKey: null,
-                arrayIndex,
-            },
-            ThemeCache
-        );
         ItemRender(widget, {
             ...options,
             runtimeValueNode: { node: value, key: arrayIndex },
@@ -67,7 +51,6 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
             objectKey: null,
             arrayIndex,
             valuePath: `${valuePath}/${arrayIndex}`,
-            domIndex: localIndex,
             handle: {
                 canMoveUp: schemaOption.orderable && arrayIndex > schemaItemsLen && arrayIndex !== 0,
                 canMoveDown:
@@ -144,14 +127,10 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
                 },
             },
             schemaOption,
+            dataSource: dataSource.children[arrayIndex],
             // using for custom array child widgetShcema
-            childEditor: getEditor(editors, arrayIndex),
-            runtime: {
-                ...runtime,
-                valueParent: runtime.valueParent[runtime.valueKey],
-                valueKey: arrayIndex,
-            },
-            debug: debug ? { path: `${debugObj.path}[${arrayIndex}]` } : null,
+            widgetForChild: getEditor(editors, arrayIndex),
+            ...(debug ? { debugObj: { ...debugObj, path: `${debugObj.path}[${arrayIndex}]` } } : {}),
         });
     }
 };

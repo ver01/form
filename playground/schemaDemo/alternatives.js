@@ -21,7 +21,7 @@ module.exports = {
                         title: "Blue",
                     },
                 ],
-                $vf_ext: {
+                $vf_opt: {
                     widget: "color",
                 },
             },
@@ -38,7 +38,7 @@ module.exports = {
                         const: false,
                     },
                 ],
-                $vf_ext: {
+                $vf_opt: {
                     widget: "radio",
                 },
             },
@@ -75,7 +75,7 @@ module.exports = {
                 type: "string",
                 enum: ["screen", "multiply", "overlay"],
                 enumNames: ["Screen", "Multiply", "Overlay"],
-                $vf_ext: {
+                $vf_opt: {
                     option: {
                         enumDisabled: [{ value: "multiply" }], // highest priority match value > index > label
                         // enumDisabled: [{ index: 1 }],

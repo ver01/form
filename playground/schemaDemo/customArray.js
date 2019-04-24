@@ -8,7 +8,7 @@ module.exports = {
                 items: {
                     type: "string",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "custom-array",
                 },
             },
@@ -18,7 +18,7 @@ module.exports = {
                 items: {
                     type: "string",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "custom-array-and-child",
                 },
             },
@@ -28,7 +28,7 @@ module.exports = {
                 items: {
                     type: "string",
                 },
-                $vf_ext: {
+                $vf_opt: {
                     widget: "custom-array-and-child-partly",
                 },
             },

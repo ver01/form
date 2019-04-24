@@ -76,6 +76,13 @@ export function handleRef(runtimeSchema, rootRawReadonlySchema, deep = 1) {
             handleRef(runtimeSchema.items, rootRawReadonlySchema, deep - 1);
         }
     }
+    if (runtimeSchema.additionalItems) {
+        if (isArrayLikeObject(runtimeSchema.additionalItems)) {
+            runtimeSchema.additionalItems.map(it => handleRef(it, rootRawReadonlySchema, deep - 1));
+        } else {
+            handleRef(runtimeSchema.additionalItems, rootRawReadonlySchema, deep - 1);
+        }
+    }
 }
 
 export function handleXofAndValue(options) {
@@ -147,7 +154,7 @@ export function handleXofAndValue(options) {
             if (isPlainObject(runtimeSchema.dependencies)) {
                 isRawSchema = false;
                 isSchemaChange = true;
-                dealDependencies(runtimeSchema, options.value);
+                dealDependencies(runtimeSchema, runtimeValueNode);
             }
 
             if (isSchemaChange) {
@@ -164,7 +171,10 @@ export function handleXofAndValue(options) {
         initValue(options);
     }
     if (schemaList) {
+        options.schemaList = schemaList;
         setCache(rootControlCache, "valuePath", valuePath, { schemaList });
+    } else {
+        delete options.schemaList;
     }
 }
 
@@ -188,7 +198,7 @@ export function getItemSchema(runtimeSchema, index, rootRawReadonlySchema) {
     } else {
         subSchema = items;
     }
-    return subSchema;
+    return deepClone(subSchema);
 }
 
 export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {

@@ -1,5 +1,5 @@
 import { getCache, setCache, getNodeValue } from "../../../utils";
-import { isSchemaMatched, schemaMerge } from "../../../utils";
+import { isSchemaMatched, schemaMerge } from "../../../schemaUtils";
 
 export default function(
     runtimeSchema,
@@ -26,7 +26,7 @@ export default function(
                     rootRawReadonlySchema
                 );
                 return {
-                    runtimeSchema: it,
+                    schema: it, // for control widget user define (runtimeSchema => displayed as schema)
                     valid,
                     selected: activeSchemaForce ? ind === activeSchemaIndex : valid && ind === activeSchemaIndex,
                 };

@@ -9,7 +9,7 @@ module.exports = {
                 type: "string",
                 title: "First name",
                 default: "Chuck",
-                $vf_ext: {
+                $vf_opt: {
                     props: {
                         autoFocus: true,
                     },
@@ -27,7 +27,7 @@ module.exports = {
             bio: {
                 type: "string",
                 title: "Bio",
-                $vf_ext: {
+                $vf_opt: {
                     widget: "textarea",
                 },
             },
@@ -36,7 +36,7 @@ module.exports = {
                 title: "Password",
                 description: "Hint: Make it strong!",
                 minLength: 3,
-                $vf_ext: {
+                $vf_opt: {
                     widget: "password",
                 },
             },

@@ -20,7 +20,7 @@ module.exports = {
                 type: "number",
                 title: "Number enum",
                 enum: [1, 2, 3],
-                $vf_ext: {
+                $vf_opt: {
                     widget: "radio",
                 },
             },
@@ -29,7 +29,7 @@ module.exports = {
                 type: "integer",
                 minimum: 42,
                 maximum: 100,
-                $vf_ext: {
+                $vf_opt: {
                     widget: "range",
                 },
             },
@@ -39,7 +39,7 @@ module.exports = {
                 minimum: 50,
                 maximum: 100,
                 multipleOf: 10,
-                $vf_ext: {
+                $vf_opt: {
                     widget: "range",
                 },
             },

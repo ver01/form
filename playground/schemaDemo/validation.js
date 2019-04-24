@@ -2,14 +2,14 @@ module.exports = {
     schema: {
         title: "Custom validation",
         description:
-            "This form defines custom validation rules checking that the two passwords match. [by Schema: $vf_ext.validate.passEqualTo & Props: validators ]",
+            "This form defines custom validation rules checking that the two passwords match. [by Schema: $vf_opt.validate.passEqualTo & Props: validators ]",
         type: "object",
         properties: {
             pass1: {
                 title: "Password",
                 type: "string",
                 minLength: 3,
-                $vf_ext: {
+                $vf_opt: {
                     widget: "password",
                 },
             },
@@ -17,7 +17,7 @@ module.exports = {
                 title: "Repeat password",
                 type: "string",
                 minLength: 3,
-                $vf_ext: {
+                $vf_opt: {
                     widget: "password",
                     validate: {
                         passEqualTo: "pass1",

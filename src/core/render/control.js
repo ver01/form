@@ -4,7 +4,8 @@ import ContainerRender from "./container";
 import BaseRender from "./base";
 import dsMaker from "./dsMaker";
 
-const ControlRender = (controlWidget, widget, options, ThemeCache) => {
+const ControlRender = (controlWidgetObj, widget, options, ThemeCache) => {
+    const { widget: controlWidget, ...widgetObjOthers } = controlWidgetObj;
     const { rootControlCache } = options;
     const {
         runtimeValueNode,
@@ -14,9 +15,9 @@ const ControlRender = (controlWidget, widget, options, ThemeCache) => {
         debug,
         debugObj,
         dataSource,
-        domIndex,
         handle,
         formUpdate,
+        schemaList,
     } = options;
 
     const value = getNodeValue(runtimeValueNode);
@@ -30,17 +31,26 @@ const ControlRender = (controlWidget, widget, options, ThemeCache) => {
         }
     }
 
-    const schemaSelect = index => {
-        const int = typeof index === "string" ? parseInt(index, 10) : index;
-        setCache(rootControlCache, "valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true });
-        formUpdate("schemaSelect");
-    };
-    options.handle.schemaSelect = schemaSelect;
+    if (schemaList) {
+        handle.schemaSelect = index => {
+            const int = typeof index === "string" ? parseInt(index, 10) : index;
+            setCache(rootControlCache, "valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true });
+            formUpdate("schemaSelect");
+        };
+    }
 
     if (controlWidget.mode === "editorHolder") {
+        dataSource.children = [{}];
         switch (runtimeSchema.type) {
             case "object":
-                ContainerRender(widget, options, ThemeCache);
+                ContainerRender(
+                    widget,
+                    {
+                        ...options,
+                        dataSource: dataSource.children[0],
+                    },
+                    ThemeCache
+                );
                 break;
             case "array": {
                 Object.assign(handle, {
@@ -54,41 +64,52 @@ const ControlRender = (controlWidget, widget, options, ThemeCache) => {
                                 runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
                             })
                         );
-                        options.handle.onChange(ret, { updatePath: options.valuePath });
+                        handle.onChange(ret, { updatePath: options.valuePath });
                     },
                 });
-                ContainerRender(widget, options, ThemeCache);
+                ContainerRender(
+                    widget,
+                    {
+                        ...options,
+                        dataSource: dataSource.children[0],
+                    },
+                    ThemeCache
+                );
                 break;
             }
             default:
-                BaseRender(widget, options);
+                BaseRender(widget, {
+                    ...options,
+                    dataSource: dataSource.children[0],
+                });
                 break;
         }
-        dsMaker(dataSource, controlWidget, options, {
-            holder: true,
-            caller: "Control",
-        });
+        dsMaker(
+            dataSource,
+            controlWidget,
+            { ...options, ...widgetObjOthers },
+            {
+                holder: true,
+                caller: "Control",
+            }
+        );
     } else {
-        dataSource.children = [];
-        let localIndex = domIndex;
         const loopLen = (controlWidget.children || []).length || 0;
+        dataSource.children = [];
         for (let index = 0; index < loopLen; index++) {
             dataSource.children[index] = {};
             debug && (debugObj.inLoop = true);
             ControlRender(
-                controlWidget.children[index],
+                { widget: controlWidget.children[index], ...widgetObjOthers },
                 widget,
                 {
                     ...options,
                     dataSource: dataSource.children[index],
-                    domIndex: localIndex,
                 },
                 ThemeCache
             );
-            localIndex += dataSource.children[index].domLength;
         }
-
-        dsMaker(dataSource, controlWidget, options, { caller: "Root" });
+        dsMaker(dataSource, controlWidget, { ...options, ...widgetObjOthers }, { caller: "Control" });
     }
 };
 
