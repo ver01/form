@@ -2,29 +2,8 @@ import React, { Component } from "react";
 import FormRender from "./render/formRender";
 import FormView from "./formView";
 import dsRebuilder from "./render/dsRebuilder";
-import { deepClone, isEqual, isUndefined, isEqualWith, isPlainObject, isArrayLikeObject } from "../vendor/lodash";
-
-const compare = (newV, oldV) => {
-    if (typeof newV === "function") {
-        if (typeof oldV === "function") {
-            return newV.toString() === oldV.toString();
-        }
-        return false;
-    } else if (isPlainObject(newV)) {
-        if (isPlainObject(oldV)) {
-            const keys = Object.keys(newV);
-            return !keys.some(key => !isEqualWithDeep(newV[key], oldV[key], compare));
-        }
-        return false;
-    } else if (isArrayLikeObject(newV)) {
-        if (isArrayLikeObject(oldV)) {
-            return !newV.some((v, ind) => !isEqualWithDeep(v, oldV[ind], compare));
-        }
-        return false;
-    }
-    return isEqual(newV, oldV);
-};
-const isEqualWithDeep = (newOther, other) => isEqualWith(newOther, other, compare);
+import { deepClone, isEqual, isUndefined } from "../vendor/lodash";
+import { isEqualWithFunction, getValueUpdateTree } from "../utils";
 
 export default class Form extends Component {
     constructor(props) {
@@ -43,8 +22,9 @@ export default class Form extends Component {
         this.rootRuntimeSchema = deepClone(schema); // Generate By Render
         this.rootRuntimeValueObj = { root: underControl ? deepClone(value) : deepClone(defaultValue) }; // Generate By Render
         this.rootRuntimeCache = {};
-        this.rootUpdateTree = {};
+        this.updateTreeObj = {};
         this.rootControlCache = { valuePath: {} };
+        this.dataSource = {};
 
         this.viewValueObj = { root: undefined };
 
@@ -70,13 +50,15 @@ export default class Form extends Component {
         } = nextProps;
         const { value, defaultValue, schema = null, option = {}, ...other } = this.props;
         const newState = {};
+        this.updateTreeObj = {};
 
         // underControl, rootRawReadonlyValue
         switch (this.state.underControl) {
             case true:
                 if (!isEqual(newValue, value)) {
                     newState.rootRawReadonlyValue = newValue;
-                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
+                    if (this.updateTreeObj.update) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newValue) };
                         this.viewValueObj = { root: deepClone(newValue) };
@@ -86,7 +68,8 @@ export default class Form extends Component {
             case false:
                 if (!isEqual(newDefaultValue, defaultValue)) {
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
+                    if (this.updateTreeObj.update) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
                         this.viewValueObj = { root: deepClone(newDefaultValue) };
@@ -97,7 +80,8 @@ export default class Form extends Component {
                 if (!isUndefined(newValue)) {
                     newState.underControl = true;
                     newState.rootRawReadonlyValue = newValue;
-                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
+                    if (this.updateTreeObj.update) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newValue) };
                         this.viewValueObj = { root: deepClone(newValue) };
@@ -105,7 +89,8 @@ export default class Form extends Component {
                 } else if (!isUndefined(defaultValue)) {
                     newState.underControl = false;
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    if (!isEqual(newState.rootRawReadonlyValue, this.viewValueObj.root)) {
+                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
+                    if (this.updateTreeObj.update) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
                         this.viewValueObj = { root: deepClone(newDefaultValue) };
@@ -115,20 +100,20 @@ export default class Form extends Component {
         }
 
         // rootRawReadonlySchema
-        if (!isEqual(newSchema, schema)) {
+        if (!isEqualWithFunction(newSchema, schema)) {
             newState.rootRawReadonlySchema = newSchema;
             this.shouldUpdate = true;
             this.rootRuntimeSchema = deepClone(newSchema);
         }
 
         // formOption
-        if (!isEqual(newOption, option)) {
+        if (!isEqualWithFunction(newOption, option)) {
             newState.formOption = newOption;
             this.shouldUpdate = true;
         }
 
         // formProps
-        if (!isEqualWithDeep(newOther, other)) {
+        if (!isEqualWithFunction(newOther, other)) {
             this.shouldUpdate = true;
         }
 
@@ -144,6 +129,12 @@ export default class Form extends Component {
 
     shouldComponentUpdate(nextProps) {
         const change = this.shouldUpdate;
+
+        if (change && change !== "rootRawReadonlyValue") {
+            // rebuild dataSource
+            this.dataSource = {};
+        }
+
         if (nextProps.debug && change) {
             console.log("%c%s", "color:blue", `■ ${change} ==========================================================`);
             console.log("%c%s %o", "color:#999999", "Value: ", this.state.rootRawReadonlyValue);
@@ -193,12 +184,9 @@ export default class Form extends Component {
 
     render() {
         this.rootRuntimeError = {};
-        // this.rootRenderTree = getValueChange(this.viewValueObj.root, this.rootRuntimeValueObj.root);
 
         const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, formOption } = this.state;
         const { rootRuntimeSchema, rootRuntimeValueObj, rootRuntimeError, props: formProps, rootControlCache } = this;
-
-        let dataSource = {};
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
@@ -226,9 +214,11 @@ export default class Form extends Component {
                 formProps,
                 formOption,
                 rootControlCache,
-                dataSource,
+                dataSource: this.dataSource,
                 underControl,
                 valuePath: "#",
+
+                updateTreeObj: this.updateTreeObj,
 
                 runtimeSchema: rootRuntimeSchema,
                 runtimeValueNode: { node: rootRuntimeValueObj, key: "root" },
@@ -252,9 +242,9 @@ export default class Form extends Component {
             THE_ROOT
         );
 
-        dataSource = dsRebuilder(dataSource);
+        this.dataSource = dsRebuilder(this.dataSource);
 
-        debug && console.info("dataSource", dataSource);
+        debug && console.info("dataSource", this.dataSource);
 
         switch (underControl) {
             case true:
@@ -270,6 +260,6 @@ export default class Form extends Component {
             this.viewValueObj.root = deepClone(this.rootRuntimeValueObj.root);
         }
 
-        return <FormView dataSource={dataSource} />;
+        return <FormView dataSource={this.dataSource} />;
     }
 }

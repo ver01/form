@@ -5,12 +5,13 @@ import { getItemSchema } from "../../schemaUtils";
 
 import ItemRender from "./item";
 
-const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
+const ArrayReapeaterRender = (widget, options, editors) => {
     const {
         runtimeSchema,
         runtimeValueNode,
         rootRuntimeSchema,
         rootControlCache,
+        updateTreeObj,
         valuePath,
         dataSource,
         debugObj,
@@ -48,6 +49,7 @@ const ArrayReapeaterRender = (widget, options, editors, ThemeCache) => {
             runtimeSchema: itemSchema,
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,
+            updateTreeObj: (updateTreeObj.children || []).find(it => it.key === arrayIndex) || {},
             objectKey: null,
             arrayIndex,
             valuePath: `${valuePath}/${arrayIndex}`,

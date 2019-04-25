@@ -13,12 +13,11 @@ const containerRender = (widget, options, ThemeCache) => {
         }
     }
     if (widget.mode === "repeaterHolder") {
-        dataSource.children = [{}];
         RepeaterRender(
             widget,
             {
                 ...options,
-                dataSource: dataSource.children[0],
+                dataSource,
             },
             ThemeCache
         );

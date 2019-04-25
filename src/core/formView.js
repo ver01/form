@@ -1,29 +1,33 @@
-import React from "react";
+import React, { Component } from "react";
 import { isUndefined } from "../vendor/lodash";
 
-const FormView = props => {
-    const { component: Com, children, props: viewProps } = props.dataSource;
-    const childrenDoms = children ? children.map(child => <FormView dataSource={child} key={child.domIndex} />) : null;
-
-    let ret = null;
-    if (childrenDoms) {
-        if (Com === null) {
-            ret = childrenDoms;
-        } else if (isUndefined(Com)) {
-            ret = <div {...viewProps}>{childrenDoms}</div>;
-        } else {
-            ret = <Com {...viewProps}>{childrenDoms}</Com>;
+export default class FormView extends Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.dataSource.updateTreeObj.update === false) {
+            return false;
         }
-    } else {
-        if (Com === null) {
-            ret = null;
-        } else if (isUndefined(Com)) {
-            ret = <div {...viewProps} />;
-        } else {
-            ret = <Com {...viewProps} />;
-        }
+        return true;
     }
-    return ret;
-};
+    render() {
+        const { dataSource } = this.props;
+        const { component: Com, children, props: viewProps } = dataSource;
+        const childrenDoms = children
+            ? children.map(child => <FormView dataSource={child} key={child.domIndex} />)
+            : null;
 
-export default FormView;
+        if (childrenDoms) {
+            if (Com === null) {
+                return childrenDoms;
+            } else if (isUndefined(Com)) {
+                return <div {...viewProps}>{childrenDoms}</div>;
+            }
+            return <Com {...viewProps}>{childrenDoms}</Com>;
+        }
+        if (Com === null) {
+            return null;
+        } else if (isUndefined(Com)) {
+            return <div {...viewProps} />;
+        }
+        return <Com {...viewProps} />;
+    }
+}

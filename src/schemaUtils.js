@@ -2,40 +2,12 @@ import { isArrayLikeObject, isPlainObject, isUndefined, deepClone } from "./vend
 import { dealSomeOf, dealDependencies } from "./core/render/logicMods";
 import { getNodeValue, setNodeValue, setCache } from "./utils";
 
-export const simplifySchema = runtimeSchema => {
+export function simplifySchema(runtimeSchema) {
     runtimeSchema.items && simplifySchema(runtimeSchema.items);
     if (runtimeSchema.enum && runtimeSchema.enum.length === 1) {
         runtimeSchema.const = runtimeSchema.enum[0];
         delete runtimeSchema.enum;
     }
-};
-
-export function getValueByAbsolutePath(value, absoluteSchemaPath) {
-    if (!value || typeof absoluteSchemaPath !== "string") {
-        return null;
-    }
-    const paths = absoluteSchemaPath.split("/");
-    if (paths[0]) {
-        // only absolute path support
-        return null;
-    }
-    let v = value;
-    for (let index = 1; index < paths.length; index++) {
-        let path = paths[index];
-        if (path === "properties") {
-            index++;
-            if (index >= paths.length) {
-                return null;
-            }
-            path = paths[index];
-            if (path && value[path]) {
-                v = value;
-            } else {
-                return null;
-            }
-        }
-    }
-    return v;
 }
 
 export function getSchemaByPath(schema, path) {
@@ -51,6 +23,7 @@ export function getSchemaByPath(schema, path) {
         return deepClone(ret);
     }
 }
+
 export function handleRef(runtimeSchema, rootRawReadonlySchema, deep = 1) {
     if (deep < 0) {
         return;
@@ -295,7 +268,7 @@ export function initValue(options) {
     }
 }
 
-export const schemaMerge = (target, ...merges) => {
+export function schemaMerge(target, ...merges) {
     const merge = (a, b) => {
         const { title: titleA = "", properties: propertiesA = {}, required: requiredA = [] } = a;
         const { title: titleB = "", properties: propertiesB = {}, required: requiredB = [], ...othersB } = b;
@@ -331,4 +304,4 @@ export const schemaMerge = (target, ...merges) => {
     };
     merges.map(it => merge(target, it));
     return target;
-};
+}
