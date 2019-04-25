@@ -14,7 +14,6 @@ const dsMaker = (dataSource, widget, options, debugInfo) => {
     dataSource.component = widget.component;
     dataSource.props = scmGetProps(widget, options);
     dataSource.underControl = options.underControl;
-    dataSource.updateTreeObj = options.updateTreeObj;
 };
 
 export default dsMaker;

@@ -3,7 +3,7 @@ import FormRender from "./render/formRender";
 import FormView from "./formView";
 import dsRebuilder from "./render/dsRebuilder";
 import { deepClone, isEqual, isUndefined } from "../vendor/lodash";
-import { isEqualWithFunction, getValueUpdateTree } from "../utils";
+import { isEqualWithFunction } from "../utils";
 
 export default class Form extends Component {
     constructor(props) {
@@ -22,7 +22,6 @@ export default class Form extends Component {
         this.rootRuntimeSchema = deepClone(schema); // Generate By Render
         this.rootRuntimeValueObj = { root: underControl ? deepClone(value) : deepClone(defaultValue) }; // Generate By Render
         this.rootRuntimeCache = {};
-        this.updateTreeObj = {};
         this.rootControlCache = { valuePath: {} };
         this.dataSource = {};
 
@@ -50,15 +49,13 @@ export default class Form extends Component {
         } = nextProps;
         const { value, defaultValue, schema = null, option = {}, ...other } = this.props;
         const newState = {};
-        this.updateTreeObj = {};
 
         // underControl, rootRawReadonlyValue
         switch (this.state.underControl) {
             case true:
                 if (!isEqual(newValue, value)) {
                     newState.rootRawReadonlyValue = newValue;
-                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
-                    if (this.updateTreeObj.update) {
+                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newValue) };
                         this.viewValueObj = { root: deepClone(newValue) };
@@ -68,8 +65,7 @@ export default class Form extends Component {
             case false:
                 if (!isEqual(newDefaultValue, defaultValue)) {
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
-                    if (this.updateTreeObj.update) {
+                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
                         this.viewValueObj = { root: deepClone(newDefaultValue) };
@@ -80,8 +76,7 @@ export default class Form extends Component {
                 if (!isUndefined(newValue)) {
                     newState.underControl = true;
                     newState.rootRawReadonlyValue = newValue;
-                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
-                    if (this.updateTreeObj.update) {
+                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newValue) };
                         this.viewValueObj = { root: deepClone(newValue) };
@@ -89,8 +84,7 @@ export default class Form extends Component {
                 } else if (!isUndefined(defaultValue)) {
                     newState.underControl = false;
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    this.updateTreeObj = getValueUpdateTree(this.viewValueObj.root, newState.rootRawReadonlyValue);
-                    if (this.updateTreeObj.update) {
+                    if (isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
                         this.viewValueObj = { root: deepClone(newDefaultValue) };
@@ -217,8 +211,6 @@ export default class Form extends Component {
                 dataSource: this.dataSource,
                 underControl,
                 valuePath: "#",
-
-                updateTreeObj: this.updateTreeObj,
 
                 runtimeSchema: rootRuntimeSchema,
                 runtimeValueNode: { node: rootRuntimeValueObj, key: "root" },

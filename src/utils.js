@@ -99,30 +99,29 @@ export function getByPath(obj = {}, path = "") {
 
 export function getValueUpdateTree(oldV, newV) {
     let update = false;
+    let children = [];
     if (isPlainObject(oldV)) {
         if (isPlainObject(newV)) {
-            const children = Object.keys(oldV).map(key => {
+            children = Object.keys(oldV).map(key => {
                 const ret = getValueUpdateTree(oldV[key], newV[key]);
                 update = update || ret.update;
                 return { key, ...ret };
             });
-            return {
-                children,
-                update,
-            };
         } else {
-            const children = Object.keys(oldV).map(key => {
+            children = Object.keys(oldV).map(key => {
                 const ret = getValueUpdateTree(oldV[key]);
                 update = update || ret.update;
                 return { key, ...ret };
             });
-            return {
-                children,
-                update,
-            };
         }
+        if (update) {
+            children.map(it => (it.update = true));
+        }
+        return {
+            children,
+            update,
+        };
     } else if (isArrayLikeObject(oldV)) {
-        const children = [];
         if (isArrayLikeObject(newV)) {
             const newVLen = newV.length;
             const oldVLen = oldV.length;
@@ -145,6 +144,9 @@ export function getValueUpdateTree(oldV, newV) {
                     ...ret,
                 };
             }
+        }
+        if (update) {
+            children.map(it => (it.update = true));
         }
         return {
             children,

@@ -255,7 +255,7 @@ const handleValidator = (options, ThemeCache) => {
 
     // props validators
     if (formProps && formProps.validators) {
-        const validatorSchema = getByPath(parentRuntimeSchema, "$vf_opt/validate") || {};
+        const validatorSchema = getByPath(runtimeSchema, "$vf_opt/validate") || {};
         const types = Object.keys(validatorSchema);
         types.map(type => {
             if (typeof formProps.validators[type] === "function") {

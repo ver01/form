@@ -3,16 +3,7 @@ import { getEditor } from "../tools";
 import ItemRender from "./item";
 
 const ObjectReapeaterRender = (widget, options, editors) => {
-    const {
-        runtimeSchema,
-        runtimeValueNode,
-        schemaOption,
-        valuePath,
-        dataSource,
-        debug,
-        debugObj,
-        updateTreeObj,
-    } = options;
+    const { runtimeSchema, runtimeValueNode, schemaOption, valuePath, dataSource, debug, debugObj } = options;
     const { properties = {} } = runtimeSchema;
     const value = getNodeValue(runtimeValueNode);
 
@@ -55,7 +46,6 @@ const ObjectReapeaterRender = (widget, options, editors) => {
             ...options,
             runtimeValueNode: { node: value, key: objectKey },
             runtimeSchema: subSchema,
-            updateTreeObj: (updateTreeObj.children || []).find(it => it.key === objectKey) || {},
             handle: {
                 onChange: (val, opt) => {
                     options.handle.onChange(Object.assign(value, { [objectKey]: val }), opt);

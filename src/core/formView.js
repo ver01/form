@@ -2,12 +2,6 @@ import React, { Component } from "react";
 import { isUndefined } from "../vendor/lodash";
 
 export default class FormView extends Component {
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.dataSource.updateTreeObj.update === false) {
-            return false;
-        }
-        return true;
-    }
     render() {
         const { dataSource } = this.props;
         const { component: Com, children, props: viewProps } = dataSource;

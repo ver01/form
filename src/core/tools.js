@@ -25,7 +25,7 @@ const optionMapping = options => {
         formatter,
         normalizer,
         debug,
-        handle: { canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove },
+        handle: { canAppend, canMoveUp, canMoveDown, canRemove, append, moveUp, moveDown, remove, schemaSelect },
         valuePath,
         widgetData,
         widgetName,
@@ -64,6 +64,7 @@ const optionMapping = options => {
         parentValue: parentRuntimeValue,
         handle: {
             hasSchemaControl,
+            schemaSelect,
             onChange,
             canAppend,
             canMoveUp,
