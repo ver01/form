@@ -64,7 +64,7 @@ const ControlRender = (controlWidgetObj, widget, options, ThemeCache) => {
                                 runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
                             })
                         );
-                        handle.onChange(ret, { updatePath: options.valuePath });
+                        handle.onChange(ret, { updatePath: options.valuePath, formUpdate: "append" });
                     },
                 });
                 ContainerRender(

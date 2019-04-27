@@ -1,4 +1,4 @@
-import { getByPath, getNodeValue } from "../utils";
+import { getByPath, getNodeValue, setNodeValue } from "../utils";
 import { isArrayLikeObject, isPlainObject } from "../vendor/lodash";
 import FormRender from "./render/formRender";
 
@@ -125,6 +125,21 @@ export const scmGetProps = (widget, options) => {
     };
 
     return getProps(nodeProps);
+};
+
+export const scmGetPropsMaker = (widget, options) => {
+    const {
+        runtimeValueNode,
+        handle: { onChange: rawOnChange },
+    } = options;
+    return (value, onChange) => {
+        setNodeValue(runtimeValueNode, value);
+        options.handle.onChange = (val, opt) => {
+            onChange(val, opt);
+            rawOnChange(val, opt);
+        };
+        return scmGetProps(widget, options);
+    };
 };
 
 export const getEditor = (editors, key) => {

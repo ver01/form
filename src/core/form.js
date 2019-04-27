@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import FormRender from "./render/formRender";
 import FormView from "./formView";
 import dsRebuilder from "./render/dsRebuilder";
-import { deepClone, isEqual, isUndefined } from "../vendor/lodash";
+import { deepClone, isEqual, isUndefined, debounce, isNumber } from "../vendor/lodash";
 import { isEqualWithFunction } from "../utils";
 
 export default class Form extends Component {
@@ -19,7 +19,6 @@ export default class Form extends Component {
             formOption: option,
         };
 
-        this.rootRuntimeSchema = deepClone(schema); // Generate By Render
         this.rootRuntimeValueObj = { root: underControl ? deepClone(value) : deepClone(defaultValue) }; // Generate By Render
         this.rootRuntimeCache = {};
         this.rootControlCache = { valuePath: {} };
@@ -37,6 +36,12 @@ export default class Form extends Component {
 
         this.changeList = [];
         this.updating = true;
+
+        if (isNumber(props.onChangeDebounce)) {
+            this.onChangeDebounced = debounce(this.onChangeCall, props.onChangeDebounce);
+        } else {
+            this.onChangeDebounced = debounce(this.onChangeCall, 0);
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -45,9 +50,10 @@ export default class Form extends Component {
             defaultValue: newDefaultValue,
             schema: newSchema = null,
             option: newOption = {},
+            onChangeDebounce: newOnChangeDebounce,
             ...newOther
         } = nextProps;
-        const { value, defaultValue, schema = null, option = {}, ...other } = this.props;
+        const { value, defaultValue, schema = null, option = {}, onChangeDebounce, ...other } = this.props;
         const newState = {};
 
         // underControl, rootRawReadonlyValue
@@ -81,10 +87,10 @@ export default class Form extends Component {
                         this.rootRuntimeValueObj = { root: deepClone(newValue) };
                         this.viewValueObj = { root: deepClone(newValue) };
                     }
-                } else if (!isUndefined(defaultValue)) {
+                } else if (!isUndefined(newDefaultValue)) {
                     newState.underControl = false;
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    if (isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
+                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
                         this.shouldUpdate = true;
                         this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
                         this.viewValueObj = { root: deepClone(newDefaultValue) };
@@ -97,7 +103,6 @@ export default class Form extends Component {
         if (!isEqualWithFunction(newSchema, schema)) {
             newState.rootRawReadonlySchema = newSchema;
             this.shouldUpdate = true;
-            this.rootRuntimeSchema = deepClone(newSchema);
         }
 
         // formOption
@@ -111,12 +116,17 @@ export default class Form extends Component {
             this.shouldUpdate = true;
         }
 
+        // onChangeDebounce
+        if (isNumber(newOnChangeDebounce) && onChangeDebounce !== newOnChangeDebounce) {
+            this.onChangeDebounced = debounce(this.onChangeCall, newOnChangeDebounce);
+        }
+
         const changeKeys = Object.keys(newState);
 
         if (changeKeys.length) {
             this.setState(newState);
         }
-        if (this.shouldUpdate) {
+        if (this.shouldUpdate === true) {
             this.shouldUpdate = changeKeys.join(", ");
         }
     }
@@ -153,22 +163,35 @@ export default class Form extends Component {
         }
     }
 
+    onChangeCall(value, options = {}) {
+        const { onChange } = this.props;
+        onChange && onChange(deepClone(value));
+
+        const { formUpdate } = options;
+        if (formUpdate) {
+            this.formUpdate(formUpdate);
+        }
+    }
+
     onChange(obj) {
-        const { value } = obj;
         if (this.updating) {
             this.changeList.push(obj);
             return;
         }
 
-        const { debug, onChange } = this.props;
+        const { value, options } = obj;
+
+        const { debug } = this.props;
         debug &&
             console.log(
-                "%c%s%o",
+                "%c%s%o%o",
                 "color:red",
                 "■ onChange ==========================================================",
-                value
+                value,
+                options
             );
-        onChange && onChange(deepClone(value));
+
+        this.onChangeDebounced(value, options);
     }
 
     formUpdate(action) {
@@ -180,7 +203,8 @@ export default class Form extends Component {
         this.rootRuntimeError = {};
 
         const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, formOption } = this.state;
-        const { rootRuntimeSchema, rootRuntimeValueObj, rootRuntimeError, props: formProps, rootControlCache } = this;
+        const { rootRuntimeValueObj, rootRuntimeError, props: formProps, rootControlCache } = this;
+        const rootRuntimeSchema = deepClone(rootRawReadonlySchema);
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
@@ -218,7 +242,7 @@ export default class Form extends Component {
                 parentRuntimeValue: undefined,
                 childEditor: null,
                 handle: {
-                    onChange: (value, option) => this.onChange({ value, option }),
+                    onChange: (value, options) => this.onChange({ value, options }),
                 },
                 objectKey: null,
                 arrayIndex: null,

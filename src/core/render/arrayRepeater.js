@@ -87,7 +87,7 @@ const ArrayReapeaterRender = (widget, options, editors) => {
                     const temp = value[arrayIndex];
                     value[arrayIndex] = value[arrayIndexPrev];
                     value[arrayIndexPrev] = temp;
-                    options.handle.onChange(value);
+                    options.handle.onChange(value, { formUpdate: "moveUp" });
                 },
                 moveDown: () => {
                     if (arrayIndex === value.length - 1) {
@@ -110,7 +110,7 @@ const ArrayReapeaterRender = (widget, options, editors) => {
                     const temp = value[arrayIndex];
                     value[arrayIndex] = value[arrayIndexNext];
                     value[arrayIndexNext] = temp;
-                    options.handle.onChange(value);
+                    options.handle.onChange(value, { formUpdate: "moveDown" });
                 },
                 remove: () => {
                     // schema
@@ -123,7 +123,7 @@ const ArrayReapeaterRender = (widget, options, editors) => {
                     }
                     // value
                     value.splice(arrayIndex, 1);
-                    options.handle.onChange(value);
+                    options.handle.onChange(value, { formUpdate: "remove" });
                 },
             },
             schemaOption,

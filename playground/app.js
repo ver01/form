@@ -182,7 +182,7 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            underControl: true,
+            underControl: false,
             writeBack: true,
         };
     }
