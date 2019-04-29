@@ -29,6 +29,8 @@ export function getDefault(options) {
             return runtimeSchema.const;
         } else if (runtimeSchema.default) {
             return runtimeSchema.default;
+        } else if (runtimeSchema.enum && runtimeSchema.enum.length === 1) {
+            return runtimeSchema.enum[0];
         } else if (isArrayLikeObject(runtimeSchema.oneOf) && runtimeSchema.oneOf[0]) {
             const a = runtimeSchema;
             const b = runtimeSchema.oneOf[0];

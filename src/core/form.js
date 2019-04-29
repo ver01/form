@@ -1,15 +1,14 @@
 import React, { Component } from "react";
-import FormRender from "./render/formRender";
-import FormView from "./formView";
-import dsRebuilder from "./render/dsRebuilder";
-import { deepClone, isEqual, isUndefined, debounce, isNumber } from "../vendor/lodash";
+import CtrlForm from "./mode/ctrlForm";
+import UnCtrlForm from "./mode/unCtrlForm";
+import { deepClone, isEqual, isUndefined, isNumber } from "../vendor/lodash";
 import { isEqualWithFunction } from "../utils";
 
 export default class Form extends Component {
     constructor(props) {
         super(props);
 
-        const { value, defaultValue, schema = {}, option = {}, debug = false } = props;
+        const { value, defaultValue, schema = {}, option = {}, onChangeDebounce = 0 } = props;
         let underControl = isUndefined(value) ? (isUndefined(defaultValue) ? null : false) : true;
 
         this.state = {
@@ -17,31 +16,11 @@ export default class Form extends Component {
             rootRawReadonlySchema: schema,
             rootRawReadonlyValue: underControl ? value : defaultValue,
             formOption: option,
+            shouldUpdate: ["init"],
+            onChangeDebounce,
         };
-
-        this.rootRuntimeValueObj = { root: underControl ? deepClone(value) : deepClone(defaultValue) }; // Generate By Render
-        this.rootRuntimeCache = {};
-        this.rootControlCache = { valuePath: {} };
-        this.dataSource = {};
-
-        this.viewValueObj = { root: undefined };
-
-        if (debug) {
-            console.log("%c%s", "color:blue", "■ init ==========================================================");
-            console.log("%c%s %o", "color:#999999", "Value: ", this.state.rootRawReadonlyValue);
-            console.log("%c%s %o", "color:#999999", "Schema: ", this.state.rootRawReadonlySchema);
-        }
-
-        this.shouldUpdate = false;
-
         this.changeList = [];
-        this.updating = true;
-
-        if (isNumber(props.onChangeDebounce)) {
-            this.onChangeDebounced = debounce(this.onChangeCall, props.onChangeDebounce);
-        } else {
-            this.onChangeDebounced = debounce(this.onChangeCall, 0);
-        }
+        this.inValueSnapshot = deepClone(this.state.rootRawReadonlyValue);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -55,26 +34,23 @@ export default class Form extends Component {
         } = nextProps;
         const { value, defaultValue, schema = null, option = {}, onChangeDebounce, ...other } = this.props;
         const newState = {};
+        let shouldUpdate = [];
 
         // underControl, rootRawReadonlyValue
         switch (this.state.underControl) {
             case true:
                 if (!isEqual(newValue, value)) {
                     newState.rootRawReadonlyValue = newValue;
-                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
-                        this.shouldUpdate = true;
-                        this.rootRuntimeValueObj = { root: deepClone(newValue) };
-                        this.viewValueObj = { root: deepClone(newValue) };
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("rootRawReadonlyValue");
                     }
                 }
                 break;
             case false:
                 if (!isEqual(newDefaultValue, defaultValue)) {
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
-                        this.shouldUpdate = true;
-                        this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
-                        this.viewValueObj = { root: deepClone(newDefaultValue) };
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("rootRawReadonlyValue");
                     }
                 }
                 break;
@@ -82,18 +58,16 @@ export default class Form extends Component {
                 if (!isUndefined(newValue)) {
                     newState.underControl = true;
                     newState.rootRawReadonlyValue = newValue;
-                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
-                        this.shouldUpdate = true;
-                        this.rootRuntimeValueObj = { root: deepClone(newValue) };
-                        this.viewValueObj = { root: deepClone(newValue) };
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("underControl");
+                        shouldUpdate.push("rootRawReadonlyValue");
                     }
                 } else if (!isUndefined(newDefaultValue)) {
                     newState.underControl = false;
                     newState.rootRawReadonlyValue = newDefaultValue;
-                    if (!isEqual(this.viewValueObj.root, newState.rootRawReadonlyValue)) {
-                        this.shouldUpdate = true;
-                        this.rootRuntimeValueObj = { root: deepClone(newDefaultValue) };
-                        this.viewValueObj = { root: deepClone(newDefaultValue) };
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("underControl");
+                        shouldUpdate.push("rootRawReadonlyValue");
                     }
                 }
                 break;
@@ -102,52 +76,39 @@ export default class Form extends Component {
         // rootRawReadonlySchema
         if (!isEqualWithFunction(newSchema, schema)) {
             newState.rootRawReadonlySchema = newSchema;
-            this.shouldUpdate = true;
+            shouldUpdate.push("rootRawReadonlySchema");
         }
 
         // formOption
         if (!isEqualWithFunction(newOption, option)) {
             newState.formOption = newOption;
-            this.shouldUpdate = true;
+            shouldUpdate.push("formOption");
         }
 
         // formProps
         if (!isEqualWithFunction(newOther, other)) {
-            this.shouldUpdate = true;
+            shouldUpdate = true;
+            shouldUpdate.push("formProps");
         }
 
         // onChangeDebounce
         if (isNumber(newOnChangeDebounce) && onChangeDebounce !== newOnChangeDebounce) {
-            this.onChangeDebounced = debounce(this.onChangeCall, newOnChangeDebounce);
+            shouldUpdate.push("onChangeDebounce");
+            newState.onChangeDebounce = newOnChangeDebounce;
         }
 
-        const changeKeys = Object.keys(newState);
-
-        if (changeKeys.length) {
+        if (shouldUpdate.length) {
+            newState.shouldUpdate = shouldUpdate;
             this.setState(newState);
-        }
-        if (this.shouldUpdate === true) {
-            this.shouldUpdate = changeKeys.join(", ");
+        } else {
+            this.setState({ shouldUpdate: [] });
         }
     }
 
-    shouldComponentUpdate(nextProps) {
-        const change = this.shouldUpdate;
+    shouldComponentUpdate(nextProps, nextStatus) {
+        const { shouldUpdate } = nextStatus;
 
-        if (change && change !== "rootRawReadonlyValue") {
-            // rebuild dataSource
-            this.dataSource = {};
-        }
-
-        if (nextProps.debug && change) {
-            console.log("%c%s", "color:blue", `■ ${change} ==========================================================`);
-            console.log("%c%s %o", "color:#999999", "Value: ", this.state.rootRawReadonlyValue);
-            console.log("%c%s %o", "color:#999999", "Schema: ", this.state.rootRawReadonlySchema);
-        }
-        this.shouldUpdate = false;
-
-        // to boolean
-        return !!change;
+        return shouldUpdate ? true : false;
     }
 
     componentWillUpdate() {
@@ -156,126 +117,77 @@ export default class Form extends Component {
 
     componentDidUpdate() {
         this.updating = false;
-        const obj = this.changeList.pop();
-        if (obj) {
+        const value = this.changeList.pop();
+        if (value) {
             this.changeList = [];
-            this.onChange(obj);
+            this.onChange(value);
         }
     }
 
-    onChangeCall(value, options = {}) {
-        const { onChange } = this.props;
-        onChange && onChange(deepClone(value));
-
-        const { formUpdate } = options;
-        if (formUpdate) {
-            this.formUpdate(formUpdate);
-        }
-    }
-
-    onChange(obj) {
-        if (this.updating) {
-            this.changeList.push(obj);
+    onChange(value) {
+        if (this.updating !== false) {
+            this.changeList.push(value);
             return;
         }
 
-        const { value, options } = obj;
+        const { debug, onChange } = this.props;
 
-        const { debug } = this.props;
         debug &&
             console.log(
-                "%c%s%o%o",
+                "%c%s%o",
                 "color:red",
                 "■ onChange ==========================================================",
-                value,
-                options
+                value
             );
 
-        this.onChangeDebounced(value, options);
-    }
-
-    formUpdate(action) {
-        this.shouldUpdate = action;
-        this.forceUpdate();
+        if (!this.state.underControl) {
+            this.inValueSnapshot = deepClone(value);
+        }
+        onChange && onChange(deepClone(value));
     }
 
     render() {
-        this.rootRuntimeError = {};
-
-        const { underControl, rootRawReadonlySchema, rootRawReadonlyValue, formOption } = this.state;
-        const { rootRuntimeValueObj, rootRuntimeError, props: formProps, rootControlCache } = this;
-        const rootRuntimeSchema = deepClone(rootRawReadonlySchema);
-
-        const THE_ROOT = true;
-        const NOT_BYPASS_SCHEMA_HANDLE = false;
-
+        const {
+            underControl,
+            rootRawReadonlySchema,
+            rootRawReadonlyValue,
+            formOption,
+            onChangeDebounce,
+            shouldUpdate,
+        } = this.state;
         const { debug } = this.props;
-        if (debug) {
-            console.log("%c%s", "color:#666666", "■ render ========================================================");
-            console.log("%c%s %o", "color:#999999", "UnderControl: ", `${this.state.underControl}`);
-            console.log("%c%s %o", "color:#999999", "ViewValue: ", this.viewValueObj.root);
-            console.log("%c%s %o", "color:#999999", "Value: ", rootRuntimeValueObj.root);
-            console.log("%c%s %o", "color:#999999", "Schema: ", rootRuntimeSchema);
-        }
 
         if (debug) {
-            console.log("%c%s", "color:#666666", "■ formRender =====================================================");
+            console.log(
+                "%c%s",
+                "color:blue",
+                `■ ${shouldUpdate.join(",")} ==========================================================`
+            );
+            console.log("%c%s %o", "color:#999999", "Value: ", rootRawReadonlyValue);
+            console.log("%c%s %o", "color:#999999", "Schema: ", rootRawReadonlySchema);
         }
 
-        FormRender(
-            {
-                rootRawReadonlySchema,
-                rootRuntimeSchema,
-                rootRawReadonlyValue,
-                rootRuntimeValue: rootRuntimeValueObj.root,
-                rootRuntimeError,
-                formProps,
-                formOption,
-                rootControlCache,
-                dataSource: this.dataSource,
-                underControl,
-                valuePath: "#",
-
-                runtimeSchema: rootRuntimeSchema,
-                runtimeValueNode: { node: rootRuntimeValueObj, key: "root" },
-                parentRuntimeSchema: {},
-                parentRuntimeValue: undefined,
-                childEditor: null,
-                handle: {
-                    onChange: (value, options) => this.onChange({ value, options }),
-                },
-                objectKey: null,
-                arrayIndex: null,
-
-                formUpdate: this.formUpdate.bind(this),
-
-                debug,
-                debugObj: {
-                    path: "#",
-                },
-            },
-            NOT_BYPASS_SCHEMA_HANDLE,
-            THE_ROOT
+        return underControl ? (
+            <CtrlForm
+                onChange={this.onChange.bind(this)}
+                rootRawReadonlyValue={rootRawReadonlyValue}
+                rootRawReadonlySchema={rootRawReadonlySchema}
+                formOption={formOption}
+                formProps={this.props}
+                debug={debug}
+                shouldUpdate={shouldUpdate}
+            />
+        ) : (
+            <UnCtrlForm
+                onChange={this.onChange.bind(this)}
+                rootRawReadonlyValue={rootRawReadonlyValue}
+                rootRawReadonlySchema={rootRawReadonlySchema}
+                formOption={formOption}
+                formProps={this.props}
+                debug={debug}
+                shouldUpdate={shouldUpdate}
+                onChangeDebounce={onChangeDebounce}
+            />
         );
-
-        this.dataSource = dsRebuilder(this.dataSource);
-
-        debug && console.info("dataSource", this.dataSource);
-
-        switch (underControl) {
-            case true:
-                break;
-            case false:
-                break;
-            default:
-                break;
-        }
-
-        if (!isEqual(this.rootRuntimeValueObj.root, this.viewValueObj.root)) {
-            this.onChange({ value: this.rootRuntimeValueObj.root });
-            this.viewValueObj.root = deepClone(this.rootRuntimeValueObj.root);
-        }
-
-        return <FormView dataSource={this.dataSource} />;
     }
 }

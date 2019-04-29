@@ -3,6 +3,7 @@ import { getItemSchema } from "../../schemaUtils";
 import ContainerRender from "./container";
 import BaseRender from "./base";
 import dsMaker from "./dsMaker";
+import { deepClone } from "../../vendor/lodash";
 
 const ControlRender = (controlWidgetObj, widget, options, ThemeCache) => {
     const { widget: controlWidget, ...widgetObjOthers } = controlWidgetObj;
@@ -60,9 +61,11 @@ const ControlRender = (controlWidgetObj, widget, options, ThemeCache) => {
                     append: () => {
                         const ret = value || [];
                         ret.push(
-                            getDefault({
-                                runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
-                            })
+                            deepClone(
+                                getDefault({
+                                    runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
+                                })
+                            )
                         );
                         handle.onChange(ret, { updatePath: options.valuePath, formUpdate: "append" });
                     },
