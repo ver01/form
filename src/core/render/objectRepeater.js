@@ -3,7 +3,16 @@ import { getEditor } from "../tools";
 import ItemRender from "./item";
 
 const ObjectReapeaterRender = (widget, options, editors) => {
-    const { runtimeSchema, runtimeValueNode, schemaOption, valuePath, dataSource, debug, debugObj } = options;
+    const {
+        runtimeSchema,
+        runtimeValueNode,
+        schemaOption,
+        valuePath,
+        valueUpdateTree,
+        dataSource,
+        debug,
+        debugObj,
+    } = options;
     const { properties = {} } = runtimeSchema;
     const value = getNodeValue(runtimeValueNode);
 
@@ -53,6 +62,10 @@ const ObjectReapeaterRender = (widget, options, editors) => {
             },
             objectKey,
             arrayIndex: null,
+            valueUpdateTree:
+                valueUpdateTree && valueUpdateTree.children && valueUpdateTree.children[objectKey]
+                    ? valueUpdateTree.children[objectKey]
+                    : { update: true },
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,
             valuePath: newValuePath,

@@ -18,7 +18,7 @@ export default class View extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.update ? true : false;
+        return nextProps.dataSource.update ? true : false;
     }
 
     render() {

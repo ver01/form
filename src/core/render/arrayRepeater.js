@@ -13,6 +13,7 @@ const ArrayReapeaterRender = (widget, options, editors) => {
         rootControlCache,
         valuePath,
         dataSource,
+        valueUpdateTree,
         debugObj,
         debug,
     } = options;
@@ -48,6 +49,10 @@ const ArrayReapeaterRender = (widget, options, editors) => {
             runtimeSchema: itemSchema,
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,
+            valueUpdateTree:
+                valueUpdateTree && valueUpdateTree.children && valueUpdateTree.children[arrayIndex]
+                    ? valueUpdateTree.children[arrayIndex]
+                    : { update: true },
             objectKey: null,
             arrayIndex,
             valuePath: `${valuePath}/${arrayIndex}`,

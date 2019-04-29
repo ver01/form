@@ -108,7 +108,7 @@ export default class Form extends Component {
     shouldComponentUpdate(nextProps, nextStatus) {
         const { shouldUpdate } = nextStatus;
 
-        return shouldUpdate ? true : false;
+        return shouldUpdate.length ? true : false;
     }
 
     componentWillUpdate() {
@@ -117,8 +117,8 @@ export default class Form extends Component {
 
     componentDidUpdate() {
         this.updating = false;
-        const value = this.changeList.pop();
-        if (value) {
+        if (this.changeList.length) {
+            const value = this.changeList.pop();
             this.changeList = [];
             this.onChange(value);
         }

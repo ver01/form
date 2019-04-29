@@ -32,20 +32,22 @@ export default class Form extends Component {
 
     componentDidUpdate() {
         this.updating = false;
-        const value = this.changeList.pop();
-        if (value) {
+        if (this.changeList.length) {
+            const value = this.changeList.pop();
             this.changeList = [];
             this.onChange(value);
         }
     }
 
     onChangeCall(value) {
+        console.info(value);
         if (this.updating) {
             this.changeList.push(value);
             return;
         }
 
         this.updateReason = "onChange";
+
         this.setState({
             rootRawReadonlyValue: deepClone(value),
         });
@@ -71,7 +73,7 @@ export default class Form extends Component {
             this.updateReason = "";
         } else {
             // outside component change
-            if (nextProps.shouldUpdate.includes("onChangeDebounced")) {
+            if (nextProps.shouldUpdate.includes("onChangeDebounce")) {
                 this.onChangeDebounced = debounce(this.onChangeCall, nextProps.onChangeDebounce);
             }
             if (nextProps.shouldUpdate.includes("rootRawReadonlyValue")) {
@@ -85,11 +87,29 @@ export default class Form extends Component {
                 });
             }
             if (
-                nextProps.shouldUpdate.filter(it => !["rootRawReadonlyValue", "onChangeDebounced"].includes(it)).length
+                nextProps.shouldUpdate.filter(it => !["rootRawReadonlyValue", "onChangeDebounce"].includes(it)).length
             ) {
                 this.rootControlCache = { valuePath: {} };
+                this.valueUpdateTree = getValueUpdateTree(nextProps.rootRawReadonlyValue, undefined);
+            } else {
+                this.valueUpdateTree = getValueUpdateTree(nextProps.rootRawReadonlyValue, this.lastViewValue);
             }
         }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.updateReason === "onChange") {
+            this.valueUpdateTree = getValueUpdateTree(nextState.rootRawReadonlyValue, this.lastViewValue);
+            // inside component change
+            this.updateReason = "";
+
+            return this.valueUpdateTree.update;
+        }
+        if (this.updateReason) {
+            this.valueUpdateTree = getValueUpdateTree(nextState.rootRawReadonlyValue, undefined);
+            this.updateReason = "";
+        }
+        return true;
     }
 
     render() {
@@ -149,7 +169,7 @@ export default class Form extends Component {
         debug && console.info("dataSource", dataSource);
 
         if (!isEqual(rootRuntimeValueObj.root, inValueSnapshot)) {
-            this.onChange(rootRuntimeValueObj.root);
+            this.onChange(deepClone(rootRuntimeValueObj.root));
         }
 
         this.lastViewValue = deepClone(rootRuntimeValueObj.root);
