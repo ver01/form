@@ -107,17 +107,17 @@ export function getValueUpdateTree(oldV, newV) {
             children = Object.keys(oldV).map(key => {
                 const ret = getValueUpdateTree(oldV[key], newV[key]);
                 update = update || ret.update;
-                return { key, ...ret };
+                return { ...ret, key, update };
             });
+            if (update) {
+                children.some(it => (it.update ? true : (it.update = true) && false));
+            }
         } else {
+            update = true;
             children = Object.keys(oldV).map(key => {
                 const ret = getValueUpdateTree(oldV[key]);
-                update = update || ret.update;
-                return { key, ...ret };
+                return { ...ret, key, update };
             });
-        }
-        if (update) {
-            children.map(it => (it.update = true));
         }
         return {
             children,
@@ -137,18 +137,19 @@ export function getValueUpdateTree(oldV, newV) {
                     ...ret,
                 };
             }
+            if (update) {
+                children.some(it => (it.update ? true : (it.update = true) && false));
+            }
         } else {
+            update = true;
             for (let ind = 0; ind < oldV.length; ind++) {
                 const ret = getValueUpdateTree(oldV[ind], undefined);
-                update = update || ret.update;
                 children[ind] = {
-                    key: ind,
                     ...ret,
+                    key: ind,
+                    update,
                 };
             }
-        }
-        if (update) {
-            children.map(it => (it.update = true));
         }
         return {
             children,

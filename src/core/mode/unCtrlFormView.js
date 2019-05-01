@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { isUndefined, deepClone } from "../../vendor/lodash";
+import { isUndefined, deepClone, isObjectLike } from "../../vendor/lodash";
 
 export default class View extends Component {
     constructor(props) {
@@ -8,7 +8,7 @@ export default class View extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.update === true) {
+        if (nextProps.dataSource.update === true) {
             if (this.state.value !== nextProps.dataSource.value) {
                 this.setState({
                     value: deepClone(nextProps.dataSource.value),
@@ -25,7 +25,11 @@ export default class View extends Component {
         const { dataSource } = this.props;
         const { component: Com, children, propsMaker } = dataSource;
 
-        const viewProps = propsMaker(this.state.value, value => this.setState({ value }));
+        const viewProps = propsMaker(this.state.value, value => {
+            if (this.state.value !== value || isObjectLike(value)) {
+                this.setState({ value });
+            }
+        });
         const childrenDoms = children ? children.map(child => <View dataSource={child} key={child.domIndex} />) : null;
 
         if (childrenDoms) {

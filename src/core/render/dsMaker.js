@@ -14,6 +14,7 @@ const dsMaker = (dataSource, widget, options, debugInfo) => {
         const { valueUpdateTree } = options;
         dataSource.propsMaker = scmGetPropsMaker(widget, options);
         dataSource.update = valueUpdateTree.update;
+        dataSource.value = value;
     }
 };
 

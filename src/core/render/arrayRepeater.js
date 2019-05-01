@@ -50,8 +50,8 @@ const ArrayReapeaterRender = (widget, options, editors) => {
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,
             valueUpdateTree:
-                valueUpdateTree && valueUpdateTree.children && valueUpdateTree.children[arrayIndex]
-                    ? valueUpdateTree.children[arrayIndex]
+                valueUpdateTree && valueUpdateTree.children
+                    ? valueUpdateTree.children.find(it => it.key === arrayIndex) || { update: true }
                     : { update: true },
             objectKey: null,
             arrayIndex,

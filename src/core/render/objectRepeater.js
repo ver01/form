@@ -63,8 +63,8 @@ const ObjectReapeaterRender = (widget, options, editors) => {
             objectKey,
             arrayIndex: null,
             valueUpdateTree:
-                valueUpdateTree && valueUpdateTree.children && valueUpdateTree.children[objectKey]
-                    ? valueUpdateTree.children[objectKey]
+                valueUpdateTree && valueUpdateTree.children
+                    ? valueUpdateTree.children.find(it => it.key === objectKey) || { update: true }
                     : { update: true },
             parentRuntimeSchema: runtimeSchema,
             parentRuntimeValue: value,

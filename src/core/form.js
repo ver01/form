@@ -87,7 +87,6 @@ export default class Form extends Component {
 
         // formProps
         if (!isEqualWithFunction(newOther, other)) {
-            shouldUpdate = true;
             shouldUpdate.push("formProps");
         }
 

@@ -1,6 +1,6 @@
 import { isArrayLikeObject, isPlainObject, isUndefined, deepClone } from "./vendor/lodash";
 import { dealSomeOf, dealDependencies } from "./core/render/logicMods";
-import { getNodeValue, setNodeValue, setCache } from "./utils";
+import { getNodeValue, setNodeValue, setCache, getDefault } from "./utils";
 
 export function simplifySchema(runtimeSchema) {
     runtimeSchema.items && simplifySchema(runtimeSchema.items);
@@ -141,8 +141,8 @@ export function handleXofAndValue(options) {
     // schema no change need update value
     if (isRawSchema) {
         simplifySchema(runtimeSchema);
-        initValue(options);
     }
+    initValue(options, true);
     if (schemaList) {
         options.schemaList = schemaList;
         setCache(rootControlCache, "valuePath", valuePath, { schemaList });
@@ -224,8 +224,8 @@ export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
     }
 }
 
-export function initValue(options) {
-    const { runtimeSchema, runtimeValueNode, rootRawReadonlySchema } = options;
+export function initValue(options, removeTail = false) {
+    const { runtimeSchema, runtimeValueNode } = options;
     let value = getNodeValue(runtimeValueNode);
     if (runtimeSchema.hasOwnProperty("const")) {
         setNodeValue(runtimeValueNode, deepClone(runtimeSchema.const));
@@ -236,34 +236,17 @@ export function initValue(options) {
     } else {
         if (runtimeSchema.type === "array") {
             if (!isArrayLikeObject(value)) {
-                value = [];
                 setNodeValue(runtimeValueNode, []);
-            }
-            const length = value.length;
-            for (let index = 0; index < length; index++) {
-                initValue({
-                    ...options,
-                    runtimeValueNode: { node: value, key: index },
-                    runtimeSchema: getItemSchema(runtimeSchema, index, rootRawReadonlySchema),
-                    rootRawReadonlySchema,
-                });
             }
         } else if (runtimeSchema.type === "object") {
             if (!isPlainObject(value)) {
-                value = {};
                 setNodeValue(runtimeValueNode, {});
+            } else if (removeTail && runtimeSchema.properties) {
+                const keys = Object.keys(runtimeSchema.properties);
+                Object.keys(value).map(key => !keys.includes(key) && delete value[key]);
             }
-            const keys = Object.keys(runtimeSchema.properties || {});
-            keys.map(key => {
-                if (!isUndefined(value[key])) {
-                    initValue({
-                        ...options,
-                        runtimeValueNode: { node: value, key },
-                        runtimeSchema: runtimeSchema.properties[key],
-                        rootRawReadonlySchema,
-                    });
-                }
-            });
+        } else if (isUndefined(value)) {
+            setNodeValue(runtimeValueNode, getDefault(options));
         }
     }
 }

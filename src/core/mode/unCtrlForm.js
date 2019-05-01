@@ -40,7 +40,6 @@ export default class Form extends Component {
     }
 
     onChangeCall(value) {
-        console.info(value);
         if (this.updating) {
             this.changeList.push(value);
             return;
@@ -76,11 +75,6 @@ export default class Form extends Component {
             if (nextProps.shouldUpdate.includes("onChangeDebounce")) {
                 this.onChangeDebounced = debounce(this.onChangeCall, nextProps.onChangeDebounce);
             }
-            if (nextProps.shouldUpdate.includes("rootRawReadonlyValue")) {
-                this.setState({
-                    rootRawReadonlyValue: deepClone(nextProps.rootRawReadonlyValue),
-                });
-            }
             if (nextProps.shouldUpdate.includes("rootRawReadonlySchema")) {
                 this.setState({
                     rootRawReadonlySchema: nextProps.rootRawReadonlySchema,
@@ -94,6 +88,9 @@ export default class Form extends Component {
             } else {
                 this.valueUpdateTree = getValueUpdateTree(nextProps.rootRawReadonlyValue, this.lastViewValue);
             }
+            this.setState({
+                rootRawReadonlyValue: deepClone(nextProps.rootRawReadonlyValue),
+            });
         }
     }
 
@@ -117,6 +114,12 @@ export default class Form extends Component {
 
         const { formProps, formOption, debug } = this.props;
         const { rootRawReadonlyValue, rootRawReadonlySchema } = this.state;
+        if (this.updateReason) {
+            // caused by forceupdate
+            this.valueUpdateTree = getValueUpdateTree(rootRawReadonlyValue, undefined);
+            // inside component change
+            this.updateReason = "";
+        }
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
