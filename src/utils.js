@@ -46,23 +46,11 @@ export function getDefault(options) {
             return getDefault({ runtimeSchema: others });
         } else {
             switch (runtimeSchema.type) {
-                case "string": {
-                    return "";
-                }
-                case "number": {
-                    return 0;
-                }
-                case "integer": {
-                    return 0;
-                }
                 case "null": {
                     return null;
                 }
                 case "array": {
                     return [];
-                }
-                case "boolean": {
-                    return false;
                 }
                 case "object": {
                     const result = {};
@@ -78,6 +66,12 @@ export function getDefault(options) {
                     }
                     return result;
                 }
+                case "string": {
+                    return "";
+                }
+                case "number":
+                case "integer":
+                case "boolean":
                 default: {
                     return undefined;
                 }

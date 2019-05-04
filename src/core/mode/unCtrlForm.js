@@ -13,6 +13,7 @@ export default class Form extends Component {
             rootRawReadonlySchema: props.rootRawReadonlySchema,
         };
         this.updateReason = "";
+        this.updating = true;
         this.changeList = [];
         this.rootRuntimeError = {};
         this.rootControlCache = { valuePath: {} };
@@ -30,22 +31,32 @@ export default class Form extends Component {
         this.updating = true;
     }
 
-    componentDidUpdate() {
+    componentDidMount() {
         this.updating = false;
         if (this.changeList.length) {
-            const value = this.changeList.pop();
+            const { value, opt } = this.changeList.pop();
             this.changeList = [];
-            this.onChange(value);
+            this.onChange(value, opt);
         }
     }
 
-    onChangeCall(value) {
+    componentDidUpdate() {
+        this.updating = false;
+        if (this.changeList.length) {
+            const { value, opt } = this.changeList.pop();
+            this.changeList = [];
+            this.onChange(value, opt);
+        }
+    }
+
+    onChangeCall(value, opt) {
         if (this.updating) {
-            this.changeList.push(value);
+            this.changeList.push({ value, opt });
             return;
         }
+        const { formUpdate = "" } = opt || {};
 
-        this.updateReason = "onChange";
+        this.updateReason = formUpdate || "onChange";
 
         this.setState({
             rootRawReadonlyValue: deepClone(value),
@@ -53,8 +64,8 @@ export default class Form extends Component {
         this.props.onChange(value);
     }
 
-    onChange(value) {
-        this.onChangeDebounced(value);
+    onChange(value, opt) {
+        this.onChangeDebounced(value, opt);
     }
 
     componentWillReceiveProps(nextProps) {

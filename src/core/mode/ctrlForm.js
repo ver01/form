@@ -8,6 +8,7 @@ export default class Form extends Component {
     constructor(props) {
         super(props);
         this.changeList = [];
+        this.updating = true;
         this.rootRuntimeError = {};
         this.rootControlCache = { valuePath: {} };
     }
@@ -18,6 +19,15 @@ export default class Form extends Component {
 
     componentWillUpdate() {
         this.updating = true;
+    }
+
+    componentDidMount() {
+        this.updating = false;
+        if (this.changeList.length) {
+            const value = this.changeList.pop();
+            this.changeList = [];
+            this.onChange(value);
+        }
     }
 
     componentDidUpdate() {

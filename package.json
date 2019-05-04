@@ -41,7 +41,7 @@
     },
     "dependencies": {},
     "devDependencies": {
-        "@ver01/form-theme-antd": "^1.0.5",
+        "@ver01/form-theme-antd": "^1.0.6",
         "atob": "^2.0.3",
         "babel-cli": "^6.18.0",
         "babel-core": "^6.26.3",
