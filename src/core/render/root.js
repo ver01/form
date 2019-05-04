@@ -1,43 +1,37 @@
-import { leafs } from "./base";
-import { isArrayLikeObject } from "../../vendor/lodash";
+import { getNodeValue } from "../../utils";
+import dsMaker from "./dsMaker";
+import FormRender from "./formRender";
 
-const RootRender = (widget, coreOpt, formRender) => {
-    const { globalKey, debug } = coreOpt;
+const RootRender = (widget, options) => {
+    const { debug, debugObj, runtimeValueNode, dataSource } = options;
+    const BYPASS_SCHEMA_HANDLE = true;
     if (debug) {
-        debug.path = `${debug.path}/Root`;
-        console.log(
-            "%c%s %cChange:%o %cValue:%o",
-            "color:green",
-            debug.path,
-            "color:blue",
-            coreOpt.changeTree,
-            "color:blue",
-            coreOpt.value
-        );
-    }
-
-    if (widget.mode === "editorHolder") {
-        const { onChange } = coreOpt.handle; // remove other handler
-        const child = formRender({ ...coreOpt, handle: { onChange } });
-        return leafs(widget, coreOpt, child, globalKey, { holder: true, caller: "Root" });
-    }
-
-    let localKey = globalKey;
-    let nodeChildren = [];
-    const loopLen = (widget.children || []).length || 0;
-    for (let index = 0; index < loopLen; index++) {
-        const child = widget.children[index];
-        const subNodes = RootRender(child, { ...coreOpt, globalKey: localKey }, formRender);
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
         } else {
-            localKey++;
-            nodeChildren.push(subNodes);
+            debugObj.path = `${debugObj.path}/Root`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", getNodeValue(runtimeValueNode));
         }
     }
 
-    return leafs(widget, coreOpt, nodeChildren, globalKey, { caller: "Root" });
+    if (widget.mode === "editorHolder") {
+        dataSource.children = [{}];
+        FormRender({ ...options, dataSource: dataSource.children[0] }, BYPASS_SCHEMA_HANDLE);
+        dsMaker(dataSource, widget, options, { holder: true, caller: "Root" });
+    } else {
+        const loopLen = (widget.children || []).length || 0;
+        dataSource.children = [];
+        for (let index = 0; index < loopLen; index++) {
+            dataSource.children[index] = {};
+            debug && (debugObj.inLoop = true);
+            RootRender(widget.children[index], {
+                ...options,
+                dataSource: dataSource.children[index],
+            });
+        }
+
+        dsMaker(dataSource, widget, options, { caller: "Root" });
+    }
 };
 
 export default RootRender;

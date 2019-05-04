@@ -1,11 +1,13 @@
 import { isPlainObject, isArrayLikeObject } from "../../../vendor/lodash";
-import { schemaMerge } from "../../../utils";
+import { getNodeValue } from "../../../utils";
+import { schemaMerge } from "../../../schemaUtils";
 
-export default function(schema, value) {
-    const { dependencies } = schema;
-    schema.dependencies = schema.dependencies || {};
+export default function(runtimeSchema, runtimeValueNode) {
+    const value = getNodeValue(runtimeValueNode);
+    runtimeSchema.dependencies = runtimeSchema.dependencies || {};
+    const { dependencies } = runtimeSchema;
 
-    if (schema.type === "object" && isPlainObject(dependencies) && isPlainObject(value)) {
+    if (runtimeSchema.type === "object" && isPlainObject(dependencies) && isPlainObject(value)) {
         const objKeys = Object.keys(dependencies).filter(key => !isArrayLikeObject(dependencies[key]));
         const matchKeys = objKeys
             .filter(key => Object.keys(value).includes(key))
@@ -21,11 +23,10 @@ export default function(schema, value) {
                 return false;
             });
         matchKeys.map(key => {
-            schemaMerge(schema, schema.dependencies[key]);
+            schemaMerge(runtimeSchema, dependencies[key]);
         });
         objKeys.map(key => {
             delete dependencies[key];
         });
     }
-    return { schema };
 }

@@ -1,87 +1,119 @@
-import { getDefault, getItemSchema } from "../../utils";
+import { setCache, getDefault, getNodeValue } from "../../utils";
+import { getItemSchema } from "../../schemaUtils";
 import ContainerRender from "./container";
-import BaseRender, { leafs } from "./base";
-import { isArrayLikeObject, deepClone } from "../../vendor/lodash";
+import BaseRender from "./base";
+import dsMaker from "./dsMaker";
+import { deepClone } from "../../vendor/lodash";
 
-const ControlRender = (controlWidget, widget, coreOpt, formRender) => {
-    const { value, schema, valuePath, rootSchema, debug, underControl, globalKey, cacheUpdate } = coreOpt;
+const ControlRender = (controlWidgetObj, widget, options, ThemeCache) => {
+    const { widget: controlWidget, ...widgetObjOthers } = controlWidgetObj;
+    const { rootControlCache } = options;
+    const {
+        runtimeValueNode,
+        runtimeSchema,
+        valuePath,
+        rootRuntimeSchema,
+        debug,
+        debugObj,
+        dataSource,
+        handle,
+        formUpdate,
+        schemaList,
+    } = options;
+
+    const value = getNodeValue(runtimeValueNode);
 
     if (debug) {
-        if (debug.inLoop) {
-            debug.inLoop = false;
+        if (debugObj.inLoop) {
+            debugObj.inLoop = false;
         } else {
-            debug.path = `${debug.path}/Control`;
-            console.log(
-                "%c%s %cChange:%o %cValue:%o",
-                "color:green",
-                debug.path,
-                "color:blue",
-                coreOpt.changeTree,
-                "color:blue",
-                coreOpt.value
-            );
+            debugObj.path = `${debugObj.path}/Control`;
+            console.log("%c%s %cValue:%o", "color:green", debugObj.path, "color:blue", value);
         }
     }
 
-    const schemaSelect = index => {
-        const int = typeof index === "string" ? parseInt(index, 10) : index;
-        cacheUpdate("valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true }, true);
-    };
+    if (schemaList) {
+        handle.schemaSelect = index => {
+            const int = typeof index === "string" ? parseInt(index, 10) : index;
+            setCache(rootControlCache, "valuePath", valuePath, { activeSchemaIndex: int, activeSchemaForce: true });
+            formUpdate("schemaSelect");
+        };
+    }
 
     if (controlWidget.mode === "editorHolder") {
-        let child = null;
-        switch (schema.type) {
+        dataSource.children = [{}];
+        switch (runtimeSchema.type) {
             case "object":
-                child = ContainerRender(widget, coreOpt, formRender);
+                ContainerRender(
+                    widget,
+                    {
+                        ...options,
+                        dataSource: dataSource.children[0],
+                    },
+                    ThemeCache
+                );
                 break;
             case "array": {
-                Object.assign(coreOpt.handle, {
+                Object.assign(handle, {
                     canAppend:
-                        !(coreOpt.extOption.appendable === false) &&
-                        (!Number.isInteger(schema.maxItems) || schema.maxItems > (value || []).length),
+                        !(options.schemaOption.appendable === false) &&
+                        (!Number.isInteger(runtimeSchema.maxItems) || runtimeSchema.maxItems > (value || []).length),
                     append: () => {
-                        const data = underControl ? deepClone(value) : value;
-                        const ret = data || [];
+                        const ret = value || [];
                         ret.push(
-                            getDefault({
-                                schema: getItemSchema(schema, ret.length, rootSchema),
-                            })
+                            deepClone(
+                                getDefault({
+                                    runtimeSchema: getItemSchema(runtimeSchema, ret.length, rootRuntimeSchema),
+                                })
+                            )
                         );
-                        coreOpt.handle.onChange(ret);
+                        handle.onChange(ret, { updatePath: options.valuePath, formUpdate: "append" });
                     },
                 });
-                child = ContainerRender(widget, coreOpt, formRender);
+                ContainerRender(
+                    widget,
+                    {
+                        ...options,
+                        dataSource: dataSource.children[0],
+                    },
+                    ThemeCache
+                );
                 break;
             }
             default:
-                child = BaseRender(widget, coreOpt);
+                BaseRender(widget, {
+                    ...options,
+                    dataSource: dataSource.children[0],
+                });
                 break;
         }
-        return leafs(controlWidget, { ...coreOpt, handle: { ...coreOpt.handle, schemaSelect } }, child, globalKey, {
-            holder: true,
-            caller: "Control",
-        });
-    }
-
-    let localKey = globalKey;
-    let nodeChildren = [];
-    const loopLen = (controlWidget.children || []).length || 0;
-    for (let index = 0; index < loopLen; index++) {
-        const child = controlWidget.children[index];
-        debug && (debug.inLoop = true);
-        const subNodes = ControlRender(child, widget, { ...coreOpt, globalKey: localKey }, formRender);
-        if (isArrayLikeObject(subNodes)) {
-            localKey += subNodes.length;
-            nodeChildren = nodeChildren.concat(subNodes);
-        } else {
-            localKey++;
-            nodeChildren.push(subNodes);
+        dsMaker(
+            dataSource,
+            controlWidget,
+            { ...options, ...widgetObjOthers },
+            {
+                holder: true,
+                caller: "Control",
+            }
+        );
+    } else {
+        const loopLen = (controlWidget.children || []).length || 0;
+        dataSource.children = [];
+        for (let index = 0; index < loopLen; index++) {
+            dataSource.children[index] = {};
+            debug && (debugObj.inLoop = true);
+            ControlRender(
+                { widget: controlWidget.children[index], ...widgetObjOthers },
+                widget,
+                {
+                    ...options,
+                    dataSource: dataSource.children[index],
+                },
+                ThemeCache
+            );
         }
+        dsMaker(dataSource, controlWidget, { ...options, ...widgetObjOthers }, { caller: "Control" });
     }
-
-    return leafs(controlWidget, { ...coreOpt, handle: { ...coreOpt.handle, schemaSelect } }, nodeChildren, globalKey, {
-        caller: "Control",
-    });
 };
 
 export default ControlRender;

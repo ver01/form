@@ -1,147 +1,113 @@
-import { Component } from "react";
-import PropTypes from "prop-types";
-import FormRender from "./render";
-import { deepClone, isEqual, isEqualWith } from "../vendor/lodash";
-import { getValueChange } from "../utils";
-
-const defaultSchema = null;
-const defaultOption = {};
-const defaultChange = {
-    schema: false,
-    value: false,
-    option: false,
-    other: false,
-    underControl: false,
-};
+import React, { Component } from "react";
+import CtrlForm from "./mode/ctrlForm";
+import UnCtrlForm from "./mode/unCtrlForm";
+import { deepClone, isEqual, isUndefined, isNumber } from "../vendor/lodash";
+import { isEqualWithFunction } from "../utils";
 
 export default class Form extends Component {
-    static defaultProps = {
-        schema: defaultSchema,
-        option: defaultOption,
-    };
-
     constructor(props) {
         super(props);
 
-        const { schema = defaultSchema, option = defaultOption, value, defaultValue } = props;
-        const keys = Object.keys(props);
-        let underControl = keys.includes("value") || !keys.includes("defaultValue") || undefined;
+        const { value, defaultValue, schema = {}, option = {}, onChangeDebounce = 0 } = props;
+        let underControl = isUndefined(value) ? (isUndefined(defaultValue) ? null : false) : true;
 
         this.state = {
-            schema,
-            option,
-            value: underControl ? deepClone(value) : deepClone(defaultValue),
             underControl,
-            cache: {},
+            rootRawReadonlySchema: schema,
+            rootRawReadonlyValue: underControl ? value : defaultValue,
+            formOption: option,
+            shouldUpdate: ["init"],
+            onChangeDebounce,
         };
-
-        this.change = { ...defaultChange };
         this.changeList = [];
-        this.updating = true;
-        props.debug && console.log("%c%s", "color:blue", "==== by init");
+        this.inValueSnapshot = deepClone(this.state.rootRawReadonlyValue);
     }
 
     componentWillReceiveProps(nextProps) {
-        this.change = { ...defaultChange };
-
         const {
             value: newValue,
             defaultValue: newDefaultValue,
-            schema: newSchema = defaultSchema,
-            option: newOption = defaultOption,
+            schema: newSchema = null,
+            option: newOption = {},
+            onChangeDebounce: newOnChangeDebounce,
             ...newOther
         } = nextProps;
-        const { value, defaultValue, schema = defaultSchema, option = defaultOption, ...other } = this.props;
-
+        const { value, defaultValue, schema = null, option = {}, onChangeDebounce, ...other } = this.props;
         const newState = {};
+        let shouldUpdate = [];
 
-        // schema change?
-        if (!isEqual(newSchema, schema)) {
-            newState.schema = newSchema;
-            this.change.schema = true;
-            this.change.underControl = true;
-            this.change.value = true;
-        }
-
-        if (typeof nextProps.value !== "undefined") {
-            newState.underControl = true;
-            if (this.state.underControl !== true) {
-                this.change.underControl = true;
-            }
-        } else if (typeof nextProps.defaultValue !== "undefined") {
-            newState.underControl = false;
-            if (this.state.underControl !== false) {
-                this.change.underControl = true;
-            }
-        }
-        if (!this.change.underControl) {
-            delete newState.underControl;
-        } else {
-            this.viewValue = undefined; // refresh component control mode;
-        }
-
-        // option Change?
-        if (!isEqual(newOption, option)) {
-            this.change.option = true;
-            newState.option = newOption;
-        }
-
-        // value change
-        if (this.change.schema) {
-            // new Form
-            newState.value = newState.underControl ? newValue : newDefaultValue;
-        } else if (Object.keys(newState).includes("underControl") ? newState.underControl : this.state.underControl) {
-            // underControl
-            if (!isEqual(this.state.value, newValue)) {
-                newState.value = newValue;
-                this.change.value = true;
-            }
-        } else if (this.change.underControl) {
-            // underControl is unkonw && first recieve defaultValue
-            newState.value = newState.underControl ? newValue : newDefaultValue;
-            this.change.value = true;
-        }
-
-        if (Object.keys(newState).length) {
-            if (this.change.value) {
-                newState.value = deepClone(newState.value);
-            }
-            if (this.change.schema) {
-                newState.cache = {
-                    ...this.state.cache,
-                    valuePath: {},
-                };
-            }
-            this.setState(newState);
-        }
-
-        if (!isEqual(newOther, other)) {
-            this.change.other = isEqualWith(newOption, other, (newV, oldV) => {
-                if (typeof newV === "function") {
-                    if (typeof oldV === "function") {
-                        return newV.toString() === oldV.toString();
-                    } else {
-                        return false;
+        // underControl, rootRawReadonlyValue
+        switch (this.state.underControl) {
+            case true:
+                if (!isEqual(newValue, value)) {
+                    newState.rootRawReadonlyValue = newValue;
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("rootRawReadonlyValue");
                     }
-                } else {
-                    return isEqual(newV, oldV);
                 }
-            });
+                break;
+            case false:
+                if (!isEqual(newDefaultValue, defaultValue)) {
+                    newState.rootRawReadonlyValue = newDefaultValue;
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("rootRawReadonlyValue");
+                    }
+                }
+                break;
+            default:
+                if (!isUndefined(newValue)) {
+                    newState.underControl = true;
+                    newState.rootRawReadonlyValue = newValue;
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("underControl");
+                        shouldUpdate.push("rootRawReadonlyValue");
+                    }
+                } else if (!isUndefined(newDefaultValue)) {
+                    newState.underControl = false;
+                    newState.rootRawReadonlyValue = newDefaultValue;
+                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
+                        shouldUpdate.push("underControl");
+                        shouldUpdate.push("rootRawReadonlyValue");
+                    }
+                }
+                break;
+        }
+
+        // rootRawReadonlySchema
+        if (!isEqualWithFunction(newSchema, schema)) {
+            newState.rootRawReadonlySchema = newSchema;
+            shouldUpdate.push("rootRawReadonlySchema");
+        }
+
+        // formOption
+        if (!isEqualWithFunction(newOption, option)) {
+            newState.formOption = newOption;
+            shouldUpdate.push("formOption");
+        }
+
+        // formProps
+        if (!isEqualWithFunction(newOther, other)) {
+            shouldUpdate.push("formProps");
+        }
+
+        // onChangeDebounce
+        if (isNumber(newOnChangeDebounce) && onChangeDebounce !== newOnChangeDebounce) {
+            shouldUpdate.push("onChangeDebounce");
+            newState.onChangeDebounce = newOnChangeDebounce;
+        }
+
+        if (shouldUpdate.length) {
+            newState.shouldUpdate = shouldUpdate;
+            this.setState(newState);
+        } else {
+            this.setState({ shouldUpdate: [] });
         }
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.debug) {
-            const renderReason = `${Object.keys(this.change)
-                .filter(key => this.change[key])
-                .join(",")}`;
-            if (renderReason) {
-                console.log("%c%s", "color:blue", `==== by ${renderReason}`);
-            }
-        }
-        const change = Object.keys(this.change).some(key => this.change[key]);
-        this.change = { ...defaultChange };
-        return change;
+    shouldComponentUpdate(nextProps, nextStatus) {
+        const { shouldUpdate } = nextStatus;
+
+        return shouldUpdate.length ? true : false;
     }
 
     componentWillUpdate() {
@@ -150,106 +116,77 @@ export default class Form extends Component {
 
     componentDidUpdate() {
         this.updating = false;
-        const obj = this.changeList.pop();
-        if (obj) {
+        if (this.changeList.length) {
+            const value = this.changeList.pop();
             this.changeList = [];
-            this.onChange(obj);
+            this.onChange(value);
         }
     }
 
-    onChange(obj) {
-        const { value, equaled } = obj;
-        if (this.updating) {
-            this.changeList.push(obj);
+    onChange(value) {
+        if (this.updating !== false) {
+            this.changeList.push(value);
             return;
         }
-        if (equaled === true) {
-            return;
-        }
-        if (equaled === false || !isEqual(value, this.state.value)) {
-            this.props.onChange && this.props.onChange(deepClone(value));
-            if (!this.state.underControl) {
-                this.state.value = deepClone(value); // not trigger update, just save value
-            }
-        }
-    }
 
-    cacheUpdate(type, key, obj, forceUpdate = false) {
-        if (this.state.cache[type][key]) {
-            Object.assign(this.state.cache[type][key], obj);
-        } else {
-            this.state.cache[type][key] = { ...obj };
-        }
-        if (forceUpdate) {
-            this.forceUpdate();
-        }
-    }
+        const { debug, onChange } = this.props;
 
-    cacheRemove(type, key, forceUpdate = false) {
-        if (this.state.cache[type][key]) {
-            delete this.state.cache[type][key];
-            if (forceUpdate) {
-                this.forceUpdate();
-            }
+        debug &&
+            console.log(
+                "%c%s%o",
+                "color:red",
+                "■ onChange ==========================================================",
+                value
+            );
+
+        if (!this.state.underControl) {
+            this.inValueSnapshot = deepClone(value);
         }
+        onChange && onChange(deepClone(value));
     }
 
     render() {
-        const { value, underControl, schema, cache } = this.state;
-
-        const valueChangeTree = getValueChange(this.viewValue, value);
-        this.props.debug && console.info("==== render ====", this.viewValue, value, valueChangeTree);
-        this.viewValue = deepClone(value);
-
-        const form = FormRender({
+        const {
             underControl,
-            schema: deepClone(schema),
-            value: this.viewValue,
-            onChange: value => this.onChange({ value }),
-            // runtime Value
-            runtime: {
-                valueParent: this,
-                valueKey: "viewValue",
-            },
-            // control
-            isRoot: true,
-            globalKey: 0,
-            valuePath: "#",
-            // rootOpt
-            formOption: this.props.option,
-            formProps: this.props,
-            // render Ctrl
-            changeTree: valueChangeTree,
-            cache,
-            cacheUpdate: this.cacheUpdate.bind(this),
-            cacheRemove: this.cacheRemove.bind(this),
-            ...(this.props.debug
-                ? {
-                      debug: {
-                          path: "#",
-                          inLoop: false,
-                      },
-                  }
-                : {}),
-        });
+            rootRawReadonlySchema,
+            rootRawReadonlyValue,
+            formOption,
+            onChangeDebounce,
+            shouldUpdate,
+        } = this.state;
+        const { debug } = this.props;
 
-        if (typeof this.state.value === "undefined") {
-            // no trigger onChange when schema generator value with no value input
-            this.state.value = this.viewValue;
-        } else if (!isEqual(this.viewValue, this.state.value)) {
-            this.onChange({ value: this.viewValue, equaled: false });
+        if (debug) {
+            console.log(
+                "%c%s",
+                "color:blue",
+                `■ ${shouldUpdate.join(",")} ==========================================================`
+            );
+            console.log("%c%s %o", "color:#999999", "Value: ", rootRawReadonlyValue);
+            console.log("%c%s %o", "color:#999999", "Schema: ", rootRawReadonlySchema);
         }
-        return form;
+
+        return underControl ? (
+            <CtrlForm
+                onChange={this.onChange.bind(this)}
+                rootRawReadonlyValue={rootRawReadonlyValue}
+                rootRawReadonlySchema={rootRawReadonlySchema}
+                formOption={formOption}
+                formProps={this.props}
+                debug={debug}
+                shouldUpdate={shouldUpdate}
+            />
+        ) : (
+            <UnCtrlForm
+                onChange={this.onChange.bind(this)}
+                rootRawReadonlyValue={rootRawReadonlyValue}
+                rootRawReadonlySchema={rootRawReadonlySchema}
+                formOption={formOption}
+                formProps={this.props}
+                debug={debug}
+                shouldUpdate={shouldUpdate}
+                onChangeDebounce={onChangeDebounce}
+            />
+        );
     }
-}
-if (process.env.NODE_ENV !== "production") {
-    Form.propTypes = {
-        schema: PropTypes.any,
-        value: PropTypes.any,
-        defaultValue: PropTypes.any,
-        validators: PropTypes.object,
-        onChange: PropTypes.func,
-        onHandle: PropTypes.func, // export handle
-        option: PropTypes.object.isRequired,
-    };
 }
