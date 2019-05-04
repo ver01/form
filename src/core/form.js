@@ -20,6 +20,7 @@ export default class Form extends Component {
             onChangeDebounce,
         };
         this.changeList = [];
+        this.updating = true;
         this.inValueSnapshot = deepClone(this.state.rootRawReadonlyValue);
     }
 
@@ -41,9 +42,7 @@ export default class Form extends Component {
             case true:
                 if (!isEqual(newValue, value)) {
                     newState.rootRawReadonlyValue = newValue;
-                    if (!isEqual(this.inValueSnapshot, newState.rootRawReadonlyValue)) {
-                        shouldUpdate.push("rootRawReadonlyValue");
-                    }
+                    shouldUpdate.push("rootRawReadonlyValue");
                 }
                 break;
             case false:
@@ -112,6 +111,15 @@ export default class Form extends Component {
 
     componentWillUpdate() {
         this.updating = true;
+    }
+
+    componentDidMount() {
+        this.updating = false;
+        if (this.changeList.length) {
+            const value = this.changeList.pop();
+            this.changeList = [];
+            this.onChange(value);
+        }
     }
 
     componentDidUpdate() {

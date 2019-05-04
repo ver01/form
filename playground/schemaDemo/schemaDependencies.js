@@ -127,7 +127,7 @@ module.exports = {
         arrayOfConditionals: [
             {
                 "Do you have any pets?": "Yes: One",
-                "How old is your pet?": 6,
+                "How old is your pet?": 5,
             },
             {
                 "Do you have any pets?": "Yes: More than one",

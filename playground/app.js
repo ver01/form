@@ -182,8 +182,8 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            underControl: false,
-            writeBack: true,
+            underControl: true,
+            writeBack: false,
         };
     }
     componentDidMount() {
@@ -274,27 +274,51 @@ class App extends Component {
                 </div>
                 <div className="col-sm-5">
                     {/* main entry */}
-                    <Ver01Form
-                        schema={schema}
-                        value={underControl ? value : undefined} // underControl（when undefined）
-                        defaultValue={underControl ? undefined : defaultValue} // not underControl（when undefined）; recommend:high performance
-                        onChange={this.onValueChange}
-                        // custom validator
-                        validators={{
-                            passEqualTo: ({ value, ruleValue: valuePath, rootValue }) => {
-                                const pairValue = getByPath(rootValue, valuePath);
-                                if (value && pairValue) {
-                                    if (value !== pairValue) {
-                                        return {
-                                            errorType: "feedbackStr",
-                                            errorData: "Passwords don't match.",
-                                        };
+                    {underControl ? (
+                        <Ver01Form
+                            schema={schema}
+                            value={value} // underControl
+                            onChange={this.onValueChange}
+                            // custom validator
+                            validators={{
+                                passEqualTo: ({ value, ruleValue: valuePath, rootValue }) => {
+                                    const pairValue = getByPath(rootValue, valuePath);
+                                    if (value && pairValue) {
+                                        if (value !== pairValue) {
+                                            return {
+                                                errorType: "feedbackStr",
+                                                errorData: "Passwords don't match.",
+                                            };
+                                        }
                                     }
-                                }
-                            },
-                        }}
-                        // debug
-                    />
+                                },
+                            }}
+                            // debug
+                            key="modeA"
+                        />
+                    ) : (
+                        <Ver01Form
+                            schema={schema}
+                            defaultValue={defaultValue} // not underControl
+                            onChange={this.onValueChange}
+                            // custom validator
+                            validators={{
+                                passEqualTo: ({ value, ruleValue: valuePath, rootValue }) => {
+                                    const pairValue = getByPath(rootValue, valuePath);
+                                    if (value && pairValue) {
+                                        if (value !== pairValue) {
+                                            return {
+                                                errorType: "feedbackStr",
+                                                errorData: "Passwords don't match.",
+                                            };
+                                        }
+                                    }
+                                },
+                            }}
+                            // debug
+                            key="modeB"
+                        />
+                    )}
                 </div>
             </div>
         );
