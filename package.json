@@ -2,6 +2,17 @@
     "name": "@ver01/form",
     "version": "1.0.2",
     "description": "make form just using schema",
+    "keywords": [
+        "form",
+        "react",
+        "react form",
+        "react-form",
+        "schema form",
+        "json schema",
+        "jsonSchema",
+        "json-schema",
+        "ver01"
+    ],
     "scripts": {
         "build:readme": "toctoc README.md -w",
         "build:lib": "rimraf lib && cross-env NODE_ENV=production babel -d lib/ src/",
@@ -99,17 +110,6 @@
         "url": "git+https://github.com/ver01/form.git"
     },
     "author": "Jerry<alphaformbase@gmail.com>",
-    "keywords": [
-        "form",
-        "react",
-        "react form",
-        "react-form",
-        "schema form",
-        "json schema",
-        "jsonSchema",
-        "json-schema",
-        "ver01"
-    ],
     "license": "MIT",
     "homepage": "https://github.com/ver01/form#readme"
 }
