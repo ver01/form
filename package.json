@@ -100,8 +100,10 @@
     },
     "author": "Jerry<alphaformbase@gmail.com>",
     "keywords": [
-        "form"
+        "form",
+        "react",
         "react form",
+        "react-form",
         "schema form",
         "json schema",
         "jsonSchema",
