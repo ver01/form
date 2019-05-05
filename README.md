@@ -1,43 +1,56 @@
 ## Table of Contents
 
-  - [Online Demo](#online-demo)
-  - [Usage](#usage)
+  - [Deprecation](#deprecation)
+     - [Online Demo](#online-demo)
      - [local Demo](#local-demo)
-     - [npm import](#npm-import)
+  - [Usage](#usage)
+     - [Initialize](#initialize)
+        - [npm import](#npm-import)
         - [Uncontrolled Mode](#uncontrolled-mode)
         - [Controlled Mode](#controlled-mode)
+     - [Theme](#theme)
+  - [Requirement](#requirement)
   - [Theme](#theme)
-  - [Official theme](#official-theme)
-  - [Custom theme](#custom-theme)
-     - [Component Schema](#component-schema)
-     - [Dynamic props generator rule](#dynamic-props-generator-rule)
-        - [for props](#for-props)
-        - [for WidgetComponentSchema](#for-widgetcomponentschema)
+     - [Official theme](#official-theme)
+     - [Custom theme](#custom-theme)
+        - [Component Schema](#component-schema)
+        - [Dynamic props generator rule](#dynamic-props-generator-rule)
+           - [for props](#for-props)
+           - [for WidgetComponentSchema](#for-widgetcomponentschema)
 
 ---
 
-# Deprecation
+
+
+## Deprecation
 
 Ver01 Form is standalone lib for render JsonSchem to React Form，with different react themes supports.
 
-## Online Demo
+### Online Demo
 
 https://codesandbox.io/embed/0mlpp16yy0
 
-## Usage
-
 ### local Demo
+
+__Local demo with schema usage demo code__
+
+> git clone git@github.com:ver01/form.git
+>
 > npm install
 >
 > npm run start
-
-* visite http://localhost:8888 for schema demo
-
-### npm import
-
-> Core npm package is @ver01/form
 >
-> Most of times you need using it with theme(eg: @ver01/form-theme-antd. Or you can define theme by yourself
+> visit http://localhost:8888 for schema demo
+
+## Usage
+
+### Initialize
+
+#### npm import
+
+> Core npm package is @ver01/form.
+>
+> Most of times you need using it with theme (eg: @ver01/form-theme-antd). Or you can define theme by yourself.
 
 #### Uncontrolled Mode
 
@@ -87,26 +100,26 @@ Ver01Form.loadTheme(themeAntd);
 />
 ```
 
-## Theme
+### Theme
 
 Now antd theme avaliavle now, others will come soon.
 
 issue you wanted most react theme~~ (1 theme in at most 1 week)
 
-# Requirement
+## Requirement
 
 * @ver01/form is standalone lib. No other package needed
-* You need import form theme package. Which may involve other react component framework.
+* But, you need import form theme package. Which may involve other react component framework (most of time includes in your project already).
 
-# Theme
+## Theme
 
-## Official theme
+### Official theme
 
 * [antd](https://github.com/ver01/form-theme-antd)
 
-## Custom theme
+### Custom theme
 
-### Component Schema
+#### Component Schema
 
 We assigned a json like schema to define react componet.
 
@@ -139,7 +152,7 @@ export default {
                     formatter: val => (val ? "true" : "false"), // format value to componet
                     normalizer: val => (val === "true" ? true : false), // format value to output
                     component: FormItem, // react component
-            		propsMixinList: ["style"], // user defined in JsonSchema $vf extend config
+            		    propsMixinList: ["style"], // user defined in JsonSchema $vf extend config
                     props: formItemProps, // component props defined in other place
                     children: [ // component children (recursion)
                         {
@@ -196,9 +209,9 @@ export default {
 
 
 
-### Dynamic props generator rule
+#### Dynamic props generator rule
 
-#### for props
+##### for props
 
 ```javascript
  {
@@ -260,7 +273,7 @@ export default {
 };
 ```
 
-#### for WidgetComponentSchema
+##### for WidgetComponentSchema
 
 ```javascript
 {
@@ -268,4 +281,129 @@ export default {
     normalizer: () => {},
 }
 ```
+
+### Value
+
+#### Value In
+
+##### Uncontrolled Mode
+
+* You need set the defaultValue props
+* unset defaultValue & value props also caused ver01Form in Uncontrolled Mode
+* The Form will use the defaultValue in first defined, __deal with some situation defaultValue set async__
+
+```react
+// uncontrolled Mode:
+<Ver01Form
+  schema={{ type: 'string'}}
+  defaultValue='helloWorld'
+  onChange={console.info}
+/>
+```
+
+##### Controlled Mode
+
+- You need set the value props.
+- onChange will trigger new value, but form will change when value changed.
+
+```react
+// Controlled Mode:
+<Ver01Form
+  schema={{ type: 'string'}}
+  value={this.state.value}
+  onChange={value=>this.setValue({value})}
+/>
+```
+
+#### Value Out
+
+We not export some value post method, you can get value by onChange event, then deal with it as you wish
+
+```react
+render(){
+return <div>
+  <Ver01Form
+    schema={{ type: 'string'}}
+    value={this.state.value}
+    onChange={value=>this.setValue({value})}
+  />
+  <Button onClick={()=>{postServer(this.state.value)}}>Submit</Button>
+</div>
+}
+```
+
+#### Validate
+
+validate result will export by onValidate method
+
+when validate failed, error set as:
+
+* validateErrValuePath: the path which part valued valid failed.
+* errorObj: Generate by [Component Schema](#Component Schema) errorObjGenerator function.
+* errors: Generate by [Component Schema](#Component Schema) validators function
+  * return as array
+  * [{  errorType: "errorTypeString", errorData: AnyType }]
+
+```react
+render(){
+return <div>
+  <Ver01Form
+    schema={{
+      "type": "object",
+      "required": [
+          "firstName",
+      ],
+      "properties": {
+          "firstName": {
+              "type": "string"
+          }
+      }
+    }}
+    value={{ firstName: '' }} // zero length string cause required check
+    onValidate={error=>this.setState({errors: error && error.errors})} // error : { [validateErrValuePath]: {errorObj, errors} }
+  />
+  <Button onClick={()=>{
+    if (this.state.errors){
+      postServer(this.state.value);
+    }else {
+      console.info(this.state.errors);
+    }
+  }>Submit</Button>
+</div>
+}
+```
+
+### JSON Schema Support
+
+#### $vf_opt
+
+we extended JSON Schema By $vf_opt section
+
+#####$vf_opt.props
+
+will mixin to all components belone to one value node. Filtered by  [Component Schema](#Component Schema) propsMixinList
+
+##### $vf_opt.widget
+
+string, assign the component used. Defined in  [Component Schema](#Component Schema) widgets
+
+##### $vf_opt.option
+
+* For array
+  * orderable(default true)
+  * addable(default true)
+  * removeable(default true)
+* For string
+  * disabled
+  * readonly
+* For object
+  * order: ['first-key', 'second-key', '*', 'last-key']
+
+##### $vf_opt.validate
+
+\[ruleName\]: ruleValue
+
+see sample-validation  [local demo](#local demo)
+
+Validate can be defined in formProps or buildin validate
 

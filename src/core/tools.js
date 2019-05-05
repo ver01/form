@@ -48,7 +48,7 @@ const optionMapping = options => {
         onChange = val => rawOnchage(normalizer(val));
     }
 
-    const errorObj = rootRuntimeError[valuePath];
+    const { errorObj = null } = rootRuntimeError[valuePath] || {};
 
     return {
         rootSchema: rootRuntimeSchema,

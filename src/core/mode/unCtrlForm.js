@@ -62,6 +62,14 @@ export default class Form extends Component {
             rootRawReadonlyValue: deepClone(value),
         });
         this.props.onChange(value);
+        if (this.props.formProps) {
+            const { onValidate } = this.props.formProps;
+            if (typeof onValidate === "function") {
+                if (Object.keys(this.rootRuntimeError).length){
+                    onValidate(this.rootRuntimeError);
+                }
+            }
+        }
     }
 
     onChange(value, opt) {

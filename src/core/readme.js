@@ -42,7 +42,6 @@ export const coreOption = {
         // for string:
         disabled: false,
         readonly: false,
-        fileHandle: () => {}, // ?
         // for object:
         order: ["key_a", "key_b"],
     },

@@ -282,7 +282,7 @@ const handleValidator = (options, ThemeCache) => {
         errors.length
     ) {
         errorObj = ThemeCache.components[runtimeSchema.type].errorObjGenerator({ errors });
-        rootRuntimeError[valuePath] = errorObj;
+        rootRuntimeError[valuePath] = { errors, errorObj };
     }
 };
 

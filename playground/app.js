@@ -65,8 +65,8 @@ function FormModeSelector({ value, select }) {
             schema={{
                 type: "object",
                 properties: {
-                    underControl: {
-                        title: "UnderControl",
+                    Uncontrolled: {
+                        title: "Uncontrolled",
                         type: "boolean",
                     },
                     writeBack: {
@@ -74,7 +74,7 @@ function FormModeSelector({ value, select }) {
                         type: "boolean",
                         $vf_opt: {
                             option: {
-                                hideBy: ({ parentValue }) => !parentValue.underControl,
+                                hideBy: ({ parentValue }) => !parentValue.Uncontrolled,
                             },
                         },
                     },
@@ -182,7 +182,7 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            underControl: true,
+            Uncontrolled: true,
             writeBack: false,
         };
     }
@@ -209,11 +209,11 @@ class App extends Component {
     onValueChange = outputValue => {
         console.log("%c%s", "color:red", `onChange: ${JSON.stringify(outputValue)}`);
         const newState = {
-            outputValue, // not undercontrol
+            outputValue, // not Uncontrolled
         };
-        if (this.state.underControl && this.state.writeBack) {
+        if (this.state.Uncontrolled && this.state.writeBack) {
             // write value back to Editor —> trigger value onChange to Form
-            newState.value = outputValue; // undercontrol
+            newState.value = outputValue; // Uncontrolled
         }
         this.setState(newState);
     };
@@ -224,7 +224,7 @@ class App extends Component {
             defaultValue: undefined,
             outputValue: undefined,
             ...data,
-            value: data.defaultValue, // form underControl Demo
+            value: data.defaultValue, // form Uncontrolled Demo
         });
     };
 
@@ -233,7 +233,7 @@ class App extends Component {
     };
 
     render() {
-        const { schema, value, defaultValue, outputValue, underControl, writeBack } = this.state;
+        const { schema, value, defaultValue, outputValue, Uncontrolled, writeBack } = this.state;
         return (
             <div className="container-fluid">
                 <div className="page-header">
@@ -243,7 +243,7 @@ class App extends Component {
                             <Selector onSelected={this.load} />
                         </div>
                         <div className="col-sm-2">
-                            <FormModeSelector value={{ underControl, writeBack }} select={this.onFormModeSelected} />
+                            <FormModeSelector value={{ Uncontrolled, writeBack }} select={this.onFormModeSelected} />
                         </div>
                     </div>
                 </div>
@@ -255,11 +255,11 @@ class App extends Component {
                         <div className="col-sm-12">
                             <Editor
                                 title={
-                                    underControl
-                                        ? "Value(UnderControl Continue Control Ver01Form)"
-                                        : "DefaultValue(Not UnderControl Just init Ver01Form Value Once)"
+                                    Uncontrolled
+                                        ? "Value(Uncontrolled Continue Control Ver01Form)"
+                                        : "DefaultValue(Not Uncontrolled Just init Ver01Form Value Once)"
                                 }
-                                code={toJson(underControl ? value : defaultValue)}
+                                code={toJson(Uncontrolled ? value : defaultValue)}
                                 onChange={formData => this.onValueEdited(formData)}
                             />
                         </div>
@@ -274,10 +274,10 @@ class App extends Component {
                 </div>
                 <div className="col-sm-5">
                     {/* main entry */}
-                    {underControl ? (
+                    {Uncontrolled ? (
                         <Ver01Form
                             schema={schema}
-                            value={value} // underControl
+                            value={value} // Uncontrolled
                             onChange={this.onValueChange}
                             // custom validator
                             validators={{
@@ -295,11 +295,14 @@ class App extends Component {
                             }}
                             // debug
                             key="modeA"
+                            onValidate={errorObj => {
+                                console.info("validate error", errorObj);
+                            }}
                         />
                     ) : (
                         <Ver01Form
                             schema={schema}
-                            defaultValue={defaultValue} // not underControl
+                            defaultValue={defaultValue} // not Uncontrolled
                             onChange={this.onValueChange}
                             // custom validator
                             validators={{
@@ -317,6 +320,9 @@ class App extends Component {
                             }}
                             // debug
                             key="modeB"
+                            onValidate={errorObj => {
+                                console.info("validate error", errorObj);
+                            }}
                         />
                     )}
                 </div>
