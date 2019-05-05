@@ -100,11 +100,13 @@
     },
     "author": "Jerry<alphaformbase@gmail.com>",
     "keywords": [
-        "react",
-        "@ver01/form",
+        "form"
+        "react form",
+        "schema form",
+        "json schema",
         "jsonSchema",
-        "schema",
-        "ver01.com"
+        "json-schema",
+        "ver01"
     ],
     "license": "MIT",
     "homepage": "https://github.com/ver01/form#readme"
