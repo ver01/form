@@ -390,7 +390,7 @@ return <div>
 
 we extended JSON Schema By $vf_opt section
 
-#####$vf_opt.props
+##### $vf_opt.props
 
 will mixin to all components belone to one value node. Filtered by  [Component Schema](#Component Schema) propsMixinList
 
