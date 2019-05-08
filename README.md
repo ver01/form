@@ -1,57 +1,31 @@
-## Table of Contents
-
-  - [Deprecation](#deprecation)
-     - [Online Demo](#online-demo)
-     - [local Demo](#local-demo)
-  - [Usage](#usage)
-     - [Initialize](#initialize)
-        - [npm import](#npm-import)
-        - [Uncontrolled Mode](#uncontrolled-mode)
-        - [Controlled Mode](#controlled-mode)
-     - [Theme](#theme)
-  - [Requirement](#requirement)
-  - [Theme](#theme)
-     - [Official theme](#official-theme)
-     - [Custom theme](#custom-theme)
-        - [Component Schema](#component-schema)
-        - [Dynamic props generator rule](#dynamic-props-generator-rule)
-           - [for props](#for-props)
-           - [for WidgetComponentSchema](#for-widgetcomponentschema)
-     - [Value](#value)
-        - [Value In](#value-in)
-           - [Uncontrolled Mode](#uncontrolled-mode)
-           - [Controlled Mode](#controlled-mode)
-        - [Value Out](#value-out)
-        - [Validate](#validate)
-     - [JSON Schema Support](#json-schema-support)
-        - [$vf_opt](#vf_opt)
-           - [$vf_opt.widget](#vf_opt-widget)
-           - [$vf_opt.option](#vf_opt-option)
-           - [$vf_opt.validate](#vf_opt-validate)
-
----
-
-
 
 ## Deprecation
 
-Ver01 Form is standalone lib for render JsonSchem to React Form，with different react themes supports.
+> __Ver01Form__ is standalone lib for render JsonSchem to React Form，with different react themes supports.
 
 ### Online Demo
 
+Schema Playground
+
+[https://ver01.com/form/playground/index.html](https://ver01.com/form/playground/index.html)
+
+Depoly Code
+
 https://codesandbox.io/embed/0mlpp16yy0
+
+
 
 ### local Demo
 
-__Local demo with schema usage demo code__
 
-> git clone git@github.com:ver01/form.git
->
-> npm install
->
-> npm run start
->
-> visit http://localhost:8888 for schema demo
+
+`git clone git@github.com:ver01/form.git`
+
+`npm install`
+
+`npm run start`
+
+visit http://localhost:8888 for schema demo
 
 ## Usage
 
@@ -417,4 +391,5 @@ string, assign the component used. Defined in  [Component Schema](#Component Sch
 see sample-validation  [local demo](#local demo)
 
 Validate can be defined in formProps or buildin validate
+
 
