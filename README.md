@@ -1,14 +1,15 @@
 
-## Deprecation
-
+# Start
 > __Ver01Form__ is standalone lib for render JsonSchem to React Form，with different react themes supports.
+
+
 
 ## Online Demo
 
 [CodeSandbox Demo](https://codesandbox.io/embed/0mlpp16yy0)
 
-[Schema Playground](https://ver01.com/form/playground/index.html)
 
+[Schema Playground](https://ver01.com/form/playground/index.html)
 
 
 ## local Demo
@@ -23,67 +24,49 @@
 
 visit http://localhost:8888 for schema demo
 
+# Initialize
 
+## import npm package
 
-## Usage
+* Core npm package is __@ver01/form__.
 
-### Initialize
+* Most of times you need using it with theme (eg: @ver01/form-theme-antd). Or you can define theme by yourself.
 
-#### npm import
-
-> Core npm package is @ver01/form.
->
-> Most of times you need using it with theme (eg: @ver01/form-theme-antd). Or you can define theme by yourself.
-
-#### Uncontrolled Mode
+## Uncontrolled Mode
 
 * With defaultValue props
 
 ```react
-// --- 1. ver01form core
-import Ver01Form from "@ver01/form";
-
-// --- 2. ver01form theme
-// antd
-import themeAntd from "@ver01/form-theme-antd";
-// antd style
-import "@ver01/form-theme-antd/lib/index.css";
-
-// load theme once
-Ver01Form.loadTheme(themeAntd);
-
 <Ver01Form
-  schema={schema}
-  defaultValue={defaultValue}
-  onChange={this.onValueChange}
+    schema={{
+        title: "Uncontrolled Mode:",
+        type: "string"
+    }}
+    defaultValue="hello World"
+    onChange={this.onChange.bind(this)}
 />
 ```
 
-#### Controlled Mode
+> [Live Demo](https://codesandbox.io/embed/211nx6j9kn?fontsize=14) 
+
+## Controlled Mode
 
 * with defaultValue props
 
 ```react
-// --- 1. ver01form core
-import Ver01Form from "@ver01/form";
-
-// --- 2. ver01form theme
-// antd
-import themeAntd from "@ver01/form-theme-antd";
-// antd style
-import "@ver01/form-theme-antd/lib/index.css";
-
-// load theme once
-Ver01Form.loadTheme(themeAntd);
-
 <Ver01Form
-  schema={schema}
-  value={value}
-  onChange={this.onValueChange}
+    schema={{
+        title: "Controlled Mode:",
+        type: "string"
+    }}
+    value={this.state.value}
+    onChange={this.onChange.bind(this)}
 />
 ```
 
-### Theme
+> [Live Demo](https://codesandbox.io/embed/vy2237jl0l?fontsize=14)
+
+# Theme
 
 Now antd theme avaliavle now, others will come soon.
 
