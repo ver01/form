@@ -3,19 +3,15 @@
 
 > __Ver01Form__ is standalone lib for render JsonSchem to React Form，with different react themes supports.
 
-### Online Demo
+## Online Demo
 
-Schema Playground
+[CodeSandbox Demo](https://codesandbox.io/embed/0mlpp16yy0)
 
-[https://ver01.com/form/playground/index.html](https://ver01.com/form/playground/index.html)
-
-Depoly Code
-
-https://codesandbox.io/embed/0mlpp16yy0
+[Schema Playground](https://ver01.com/form/playground/index.html)
 
 
 
-### local Demo
+## local Demo
 
 
 
@@ -26,6 +22,8 @@ https://codesandbox.io/embed/0mlpp16yy0
 `npm run start`
 
 visit http://localhost:8888 for schema demo
+
+
 
 ## Usage
 
