@@ -6,7 +6,7 @@
 
 ## Online Demo
 
-[CodeSandbox Demo](https://codesandbox.io/embed/0mlpp16yy0)
+[![CodeSandbox Demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/embed/0mlpp16yy0)
 
 
 [Schema Playground](https://ver01.com/form/playground/index.html)
