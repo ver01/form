@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import freeGlobal from "./freeGlobal.js";
 
 /** Detect free variable `exports`. */

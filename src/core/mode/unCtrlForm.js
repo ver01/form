@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import FormRender from "../render/formRender";
 import UnCtrlFormView from "./unCtrlFormView";
-import dsRebuilder from "../render/dsRebuilder";
+import dsRebuilder, { dsUpdateAll } from "../render/dsRebuilder";
 import { deepClone, isEqual, debounce } from "../../vendor/lodash";
 import { getValueUpdateTree } from "../../utils";
 
@@ -65,7 +65,7 @@ export default class Form extends Component {
         if (this.props.formProps) {
             const { onValidate } = this.props.formProps;
             if (typeof onValidate === "function") {
-                if (Object.keys(this.rootRuntimeError).length){
+                if (Object.keys(this.rootRuntimeError).length) {
                     onValidate(this.rootRuntimeError);
                 }
             }
@@ -131,7 +131,7 @@ export default class Form extends Component {
     render() {
         this.rootRuntimeError = {};
 
-        const { formProps, formOption, debug } = this.props;
+        const { formProps, formOption, debug, shouldUpdate = [] } = this.props;
         const { rootRawReadonlyValue, rootRawReadonlySchema } = this.state;
         if (this.updateReason) {
             // caused by forceupdate
@@ -187,6 +187,9 @@ export default class Form extends Component {
         );
 
         dataSource = dsRebuilder(dataSource);
+        if (shouldUpdate.includes("rootRawReadonlySchema")) {
+            dsUpdateAll(dataSource);
+        }
 
         debug && console.info("dataSource", dataSource);
 
