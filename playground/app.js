@@ -2,8 +2,6 @@ import React, { Component } from "react";
 import { render } from "react-dom";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import { samples } from "./schemaDemo";
-import "codemirror/mode/javascript/javascript";
-import "codemirror/lib/codemirror.css";
 
 // demo mods
 import GeoPosition from "./mods/custom";
@@ -16,14 +14,6 @@ import { isEqual } from "../src/vendor/lodash";
 
 // --- 1. ver01form core
 import Ver01Form from "../src";
-
-// --- 2. ver01form theme
-// antd
-import themeAntd from "@ver01/form-theme-antd";
-// antd style
-import "@ver01/form-theme-antd/lib/index.css";
-// load theme once
-Ver01Form.loadTheme(themeAntd);
 
 // ** consts
 const shouldRender = (comp, nextProps, nextState) => {
@@ -239,7 +229,10 @@ class App extends Component {
                 <div className="page-header">
                     <h1>@ver01/form</h1>
                     <div className="row">
-                        <div className="col-sm-10">
+                        <div className="col-sm-8">
+                            <Selector onSelected={this.load} />
+                        </div>
+                        <div className="col-sm-2">
                             <Selector onSelected={this.load} />
                         </div>
                         <div className="col-sm-2">

@@ -4,8 +4,9 @@ import { getByPath } from "../../utils";
 import { getWidget } from "../tools";
 import RootRender from "./root";
 import ControlRender from "./control";
+import theme from "@ver01/form-theme-native";
 
-const ThemeCache = { components: {}, validators: {}, registerWidgets: {} };
+const ThemeCache = { components: {}, validators: {}, registerWidgets: {}, ...theme };
 
 const FormRender = function(options, bypassSchemaHandle = false, isRoot = false) {
     const { rootRawReadonlySchema, rootRuntimeSchema, runtimeSchema, parentRuntimeSchema, widgetForChild } = options;

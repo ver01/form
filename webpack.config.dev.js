@@ -1,5 +1,6 @@
 var path = require("path");
 var webpack = require("webpack");
+var BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
     mode: "development",
@@ -10,7 +11,14 @@ module.exports = {
         filename: "bundle.js",
         publicPath: "/static/",
     },
-    plugins: [new webpack.HotModuleReplacementPlugin()],
+    plugins: [new webpack.HotModuleReplacementPlugin(), new BundleAnalyzerPlugin()],
+    externals: [
+        {
+            react: "React",
+            "react-dom": "ReactDOM",
+            codemirror: "CodeMirror",
+        },
+    ],
     module: {
         rules: [
             {

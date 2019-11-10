@@ -1,11 +1,15 @@
 import { getByPath, getNodeValue, setNodeValue } from "../utils";
 import { isArrayLikeObject, isPlainObject } from "../vendor/lodash";
 import FormRender from "./render/formRender";
+import nativeTheme from "@ver01/form-theme-native";
 
 export const register = function(theme, cache) {
-    Object.keys(theme).map(key => {
-        cache[key] = theme[key];
+    // 清空cache
+    Object.keys(cache).map(key => {
+        delete cache[key];
     });
+
+    Object.assign(cache, { components: {}, validators: {}, registerWidgets: {} }, nativeTheme, theme);
 };
 
 const optionMapping = options => {

@@ -2,7 +2,7 @@ const path = require("path");
 const express = require("express");
 const webpack = require("webpack");
 
-const server = process.env.RJSF_DEV_SERVER || "localhost:8888";
+const server = process.env.RJSF_DEV_SERVER || "localhost:8000";
 const splitServer = server.split(":");
 const host = splitServer[0];
 const port = splitServer[1];

@@ -1,3 +1,33 @@
+## Table of Contents
+
+  - [Online Demo](#online-demo)
+  - [local Demo](#local-demo)
+  - [import npm package](#import-npm-package)
+  - [Uncontrolled Mode](#uncontrolled-mode)
+  - [Controlled Mode](#controlled-mode)
+  - [Requirement](#requirement)
+  - [Theme](#theme)
+     - [Official theme](#official-theme)
+     - [Custom theme](#custom-theme)
+        - [Component Schema](#component-schema)
+        - [Dynamic props generator rule](#dynamic-props-generator-rule)
+           - [for props](#for-props)
+           - [for WidgetComponentSchema](#for-widgetcomponentschema)
+     - [Value](#value)
+        - [Value In](#value-in)
+           - [Uncontrolled Mode](#uncontrolled-mode)
+           - [Controlled Mode](#controlled-mode)
+        - [Value Out](#value-out)
+        - [Validate](#validate)
+     - [JSON Schema Support](#json-schema-support)
+        - [$vf_opt](#vf_opt)
+           - [$vf_opt.props](#vf_opt-props)
+           - [$vf_opt.widget](#vf_opt-widget)
+           - [$vf_opt.option](#vf_opt-option)
+           - [$vf_opt.validate](#vf_opt-validate)
+
+---
+
 # Details & Demo by visite official site [https://ver01.com](https://ver01.com)
 
 
