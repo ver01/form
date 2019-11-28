@@ -30,3 +30,10 @@ const dsRebuilder = dataSource => {
 };
 
 export default dsRebuilder;
+
+export const dsUpdateAll = dataSource => {
+    dataSource.update = true;
+    if (dataSource.children && dataSource.children.length) {
+        dataSource.children.map(it => dsUpdateAll(it));
+    }
+};
