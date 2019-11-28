@@ -1,5 +1,5 @@
-/* eslint-disable no-fallthrough */
 /* eslint-disable no-case-declarations */
+/* eslint-disable no-fallthrough */
 import eq from "../eq.js";
 import equalArrays from "./equalArrays.js";
 import mapToArray from "./mapToArray.js";

@@ -4,14 +4,6 @@ import { render } from "react-dom";
 // --- 1. ver01form core
 import Ver01Form from "../src";
 
-// --- 2. ver01form theme
-// antd
-import themeAntd from "@ver01/form-theme-antd";
-// antd style
-import "@ver01/form-theme-antd/lib/index.css";
-// load theme once
-Ver01Form.loadTheme(themeAntd);
-
 class App extends Component {
     // form
     onValueChange = outputValue => {

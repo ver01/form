@@ -27,6 +27,7 @@ module.exports = {
             commonjs: "react",
             commonjs2: "react",
             amd: "react",
+            umd: "react",
         },
         "react-dom": {
             root: "ReactDOM",
