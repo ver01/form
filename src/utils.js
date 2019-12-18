@@ -1,4 +1,4 @@
-import { isArrayLikeObject, isPlainObject, isUndefined, isEqual, isEqualWith } from "./vendor/lodash";
+import { isArrayLikeObject, isPlainObject, isUndefined, isEqual, isEqualWith } from "lodash";
 
 export function getCache(cache, type, key) {
     return (cache[type] && cache[type][key]) || {};

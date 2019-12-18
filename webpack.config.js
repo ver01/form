@@ -1,5 +1,7 @@
-var path = require("path");
-var webpack = require("webpack");
+const path = require("path");
+const webpack = require("webpack");
+// const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const LodashModuleReplacementPlugin = require("lodash-webpack-plugin");
 
 module.exports = {
     mode: "production",
@@ -9,16 +11,17 @@ module.exports = {
     output: {
         path: path.join(__dirname, "dist"),
         publicPath: "/dist/",
-        filename: "ver01-form.js",
-        library: "V01Form",
+        filename: "index.js",
         libraryTarget: "umd",
     },
     plugins: [
+        new LodashModuleReplacementPlugin(),
         new webpack.DefinePlugin({
             "process.env": {
-                NODE_ENV: JSON.stringify("production"),
+                NODE_ENV: "production",
             },
         }),
+        // new BundleAnalyzerPlugin(),
     ],
     devtool: "source-map",
     externals: {
@@ -29,24 +32,19 @@ module.exports = {
             amd: "react",
             umd: "react",
         },
-        "react-dom": {
-            root: "ReactDOM",
-            commonjs2: "react-dom",
-            commonjs: "react-dom",
-            amd: "react-dom",
-            umd: "react-dom",
-        },
     },
     module: {
         rules: [
             {
                 test: /\.js$/,
-                use: ["babel-loader"],
-                exclude: [
-                    path.join(__dirname, "node_modules", "core-js"),
-                    path.join(__dirname, "node_modules", "babel-runtime"),
-                ],
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader",
+                },
             },
         ],
+    },
+    resolve: {
+        modules: [path.resolve(__dirname, "node_modules")],
     },
 };

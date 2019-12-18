@@ -1,4 +1,4 @@
-import { isArrayLikeObject } from "../../vendor/lodash";
+import { isArrayLikeObject } from "lodash";
 import { getEditor } from "../tools";
 import { getByPath, getCache, setCache, deleteCache, getNodeValue } from "../../utils";
 import { getItemSchema } from "../../schemaUtils";

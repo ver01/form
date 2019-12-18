@@ -1,17 +1,17 @@
 import React, { Component } from "react";
-import { isUndefined, deepClone, isObjectLike } from "../../vendor/lodash";
+import { isUndefined, cloneDeep, isObjectLike } from "lodash";
 
 export default class View extends Component {
     constructor(props) {
         super(props);
-        this.state = { value: deepClone(props.dataSource.value) };
+        this.state = { value: cloneDeep(props.dataSource.value) };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.dataSource.update === true) {
             if (this.state.value !== nextProps.dataSource.value) {
                 this.setState({
-                    value: deepClone(nextProps.dataSource.value),
+                    value: cloneDeep(nextProps.dataSource.value),
                 });
             }
         }

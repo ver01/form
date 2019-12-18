@@ -1,5 +1,5 @@
 import { getByPath, getNodeValue, setNodeValue } from "../utils";
-import { isArrayLikeObject, isPlainObject } from "../vendor/lodash";
+import { isArrayLikeObject, isPlainObject } from "lodash";
 import FormRender from "./render/formRender";
 import nativeTheme from "@ver01/form-theme-native";
 

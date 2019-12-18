@@ -1,5 +1,5 @@
 import { getByPath, getNodeValue } from "../utils";
-import { isArrayLikeObject, isPlainObject, isUndefined } from "../vendor/lodash";
+import { isArrayLikeObject, isPlainObject, isUndefined } from "lodash";
 
 const handleValidator = (options, ThemeCache) => {
     const {

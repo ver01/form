@@ -1,5 +1,5 @@
 import React from "react";
-import { isUndefined } from "../../vendor/lodash";
+import { isUndefined } from "lodash";
 
 const View = function(props) {
     const { dataSource } = props;

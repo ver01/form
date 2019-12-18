@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import CtrlForm from "./mode/ctrlForm";
 import UnCtrlForm from "./mode/unCtrlForm";
-import { deepClone, isEqual, isUndefined, isNumber } from "../vendor/lodash";
+import { cloneDeep, isEqual, isUndefined, isNumber } from "lodash";
 import { isEqualWithFunction } from "../utils";
 
 export default class Form extends Component {
@@ -21,7 +21,7 @@ export default class Form extends Component {
         };
         this.changeList = [];
         this.updating = true;
-        this.inValueSnapshot = deepClone(this.state.rootRawReadonlyValue);
+        this.inValueSnapshot = cloneDeep(this.state.rootRawReadonlyValue);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -143,14 +143,14 @@ export default class Form extends Component {
             console.log(
                 "%c%s%o",
                 "color:red",
-                "■ onChange ==========================================================",
+                "■ onChange ====",
                 value
             );
 
         if (!this.state.underControl) {
-            this.inValueSnapshot = deepClone(value);
+            this.inValueSnapshot = cloneDeep(value);
         }
-        onChange && onChange(deepClone(value));
+        onChange && onChange(cloneDeep(value));
     }
 
     render() {
@@ -168,7 +168,7 @@ export default class Form extends Component {
             console.log(
                 "%c%s",
                 "color:blue",
-                `■ ${shouldUpdate.join(",")} ==========================================================`
+                `■ ${shouldUpdate.join(",")} ====`
             );
             console.log("%c%s %o", "color:#999999", "Value: ", rootRawReadonlyValue);
             console.log("%c%s %o", "color:#999999", "Schema: ", rootRawReadonlySchema);

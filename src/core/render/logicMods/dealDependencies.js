@@ -1,4 +1,4 @@
-import { isPlainObject, isArrayLikeObject } from "../../../vendor/lodash";
+import { isPlainObject, isArrayLikeObject } from "lodash";
 import { getNodeValue } from "../../../utils";
 import { schemaMerge } from "../../../schemaUtils";
 

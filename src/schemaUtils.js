@@ -1,4 +1,4 @@
-import { isArrayLikeObject, isPlainObject, isUndefined, deepClone } from "./vendor/lodash";
+import { isArrayLikeObject, isPlainObject, isUndefined, cloneDeep } from "lodash";
 import { dealSomeOf, dealDependencies } from "./core/render/logicMods";
 import { getNodeValue, setNodeValue, setCache, getDefault } from "./utils";
 
@@ -20,7 +20,7 @@ export function getSchemaByPath(schema, path) {
             ret = ret[key];
             key = pathNode.shift();
         }
-        return deepClone(ret);
+        return cloneDeep(ret);
     }
 }
 
@@ -171,7 +171,7 @@ export function getItemSchema(runtimeSchema, index, rootRawReadonlySchema) {
     } else {
         subSchema = items;
     }
-    return deepClone(subSchema);
+    return cloneDeep(subSchema);
 }
 
 export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
@@ -179,7 +179,7 @@ export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
     if (typeOfVal === "undefined") {
         return true;
     }
-    if (runtimeSchema.hasOwnProperty("const")) {
+    if (Object.prototype.hasOwnProperty.call(runtimeSchema, "const")) {
         return JSON.stringify(value) === JSON.stringify(runtimeSchema.const);
     }
     if (isArrayLikeObject(runtimeSchema.enum) && runtimeSchema.enum.length === 1) {
@@ -227,12 +227,12 @@ export function isSchemaMatched(value, runtimeSchema, rootRawReadonlySchema) {
 export function initValue(options, removeTail = false) {
     const { runtimeSchema, runtimeValueNode } = options;
     let value = getNodeValue(runtimeValueNode);
-    if (runtimeSchema.hasOwnProperty("const")) {
-        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.const));
+    if (Object.prototype.hasOwnProperty.call(runtimeSchema, "const")) {
+        setNodeValue(runtimeValueNode, cloneDeep(runtimeSchema.const));
     } else if (isArrayLikeObject(runtimeSchema.enum) && runtimeSchema.enum.length === 1) {
-        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.enum[0]));
+        setNodeValue(runtimeValueNode, cloneDeep(runtimeSchema.enum[0]));
     } else if (isUndefined(value) && !isUndefined(runtimeSchema.default)) {
-        setNodeValue(runtimeValueNode, deepClone(runtimeSchema.default));
+        setNodeValue(runtimeValueNode, cloneDeep(runtimeSchema.default));
     } else {
         if (runtimeSchema.type === "array") {
             if (!isArrayLikeObject(value)) {

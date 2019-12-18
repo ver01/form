@@ -2,14 +2,14 @@ import React, { Component } from "react";
 import FormRender from "../render/formRender";
 import UnCtrlFormView from "./unCtrlFormView";
 import dsRebuilder, { dsUpdateAll } from "../render/dsRebuilder";
-import { deepClone, isEqual, debounce } from "../../vendor/lodash";
+import { cloneDeep, isEqual, debounce } from "lodash";
 import { getValueUpdateTree } from "../../utils";
 
 export default class Form extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            rootRawReadonlyValue: deepClone(props.rootRawReadonlyValue),
+            rootRawReadonlyValue: cloneDeep(props.rootRawReadonlyValue),
             rootRawReadonlySchema: props.rootRawReadonlySchema,
         };
         this.updateReason = "";
@@ -59,7 +59,7 @@ export default class Form extends Component {
         this.updateReason = formUpdate || "onChange";
 
         this.setState({
-            rootRawReadonlyValue: deepClone(value),
+            rootRawReadonlyValue: cloneDeep(value),
         });
         this.props.onChange(value);
         if (this.props.formProps) {
@@ -108,7 +108,7 @@ export default class Form extends Component {
                 this.valueUpdateTree = getValueUpdateTree(nextProps.rootRawReadonlyValue, this.lastViewValue);
             }
             this.setState({
-                rootRawReadonlyValue: deepClone(nextProps.rootRawReadonlyValue),
+                rootRawReadonlyValue: cloneDeep(nextProps.rootRawReadonlyValue),
             });
         }
     }
@@ -145,9 +145,9 @@ export default class Form extends Component {
 
         let dataSource = {};
 
-        const inValueSnapshot = deepClone(rootRawReadonlyValue);
-        const rootRuntimeSchema = deepClone(rootRawReadonlySchema);
-        const rootRuntimeValueObj = { root: deepClone(rootRawReadonlyValue) };
+        const inValueSnapshot = cloneDeep(rootRawReadonlyValue);
+        const rootRuntimeSchema = cloneDeep(rootRawReadonlySchema);
+        const rootRuntimeValueObj = { root: cloneDeep(rootRawReadonlyValue) };
 
         FormRender(
             {
@@ -194,10 +194,10 @@ export default class Form extends Component {
         debug && console.info("dataSource", dataSource);
 
         if (!isEqual(rootRuntimeValueObj.root, inValueSnapshot)) {
-            this.onChange(deepClone(rootRuntimeValueObj.root));
+            this.onChange(cloneDeep(rootRuntimeValueObj.root));
         }
 
-        this.lastViewValue = deepClone(rootRuntimeValueObj.root);
+        this.lastViewValue = cloneDeep(rootRuntimeValueObj.root);
 
         return <UnCtrlFormView dataSource={dataSource} />;
     }

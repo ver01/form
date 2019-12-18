@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import FormRender from "../render/formRender";
 import CtrlFormView from "./ctrlFormView";
 import dsRebuilder from "../render/dsRebuilder";
-import { deepClone, isEqual } from "../../vendor/lodash";
+import { cloneDeep, isEqual } from "lodash";
 
 export default class Form extends Component {
     constructor(props) {
@@ -73,9 +73,9 @@ export default class Form extends Component {
 
         let dataSource = {};
 
-        const inValueSnapshot = deepClone(rootRawReadonlyValue);
-        const rootRuntimeSchema = deepClone(rootRawReadonlySchema);
-        const rootRuntimeValueObj = { root: deepClone(rootRawReadonlyValue) };
+        const inValueSnapshot = cloneDeep(rootRawReadonlyValue);
+        const rootRuntimeSchema = cloneDeep(rootRawReadonlySchema);
+        const rootRuntimeValueObj = { root: cloneDeep(rootRawReadonlyValue) };
 
         FormRender(
             {
