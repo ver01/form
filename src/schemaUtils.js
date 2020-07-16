@@ -162,7 +162,7 @@ export function getItemSchema(runtimeSchema, index, rootRawReadonlySchema) {
             if (isArrayLikeObject(additionalItems)) {
                 const addIndex = index - items.length;
                 if (addIndex < additionalItems.length) {
-                    subSchema = addEventListener[addIndex];
+                    subSchema = additionalItems[addIndex];
                 }
             } else {
                 subSchema = additionalItems;
