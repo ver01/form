@@ -69,6 +69,7 @@ export default class Form extends Component {
         this.rootRuntimeError = {};
 
         const { rootRawReadonlyValue, rootRawReadonlySchema, formProps, formOption, debug } = this.props;
+        const onChange = this.props.onChange.bind(this;
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
@@ -99,7 +100,7 @@ export default class Form extends Component {
                 parentRuntimeValue: undefined,
                 childEditor: null,
                 handle: {
-                    onChange: this.onChange,
+                    onChange,
                 },
                 objectKey: null,
                 arrayIndex: null,
@@ -120,7 +121,7 @@ export default class Form extends Component {
         debug && console.info("dataSource", dataSource);
 
         if (!isEqual(rootRuntimeValueObj.root, inValueSnapshot)) {
-            this.onChange(rootRuntimeValueObj.root);
+            onChange(rootRuntimeValueObj.root);
         }
 
         return <CtrlFormView dataSource={dataSource} />;
