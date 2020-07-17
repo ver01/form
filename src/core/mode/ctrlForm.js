@@ -51,6 +51,8 @@ export default class Form extends Component {
             if (typeof onValidate === "function") {
                 if (Object.keys(this.rootRuntimeError).length) {
                     onValidate(this.rootRuntimeError);
+                } else {
+                    onValidate(null);
                 }
             }
         }
