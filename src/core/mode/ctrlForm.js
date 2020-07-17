@@ -68,7 +68,7 @@ export default class Form extends Component {
     render() {
         this.rootRuntimeError = {};
 
-        const { onChange, rootRawReadonlyValue, rootRawReadonlySchema, formProps, formOption, debug } = this.props;
+        const { rootRawReadonlyValue, rootRawReadonlySchema, formProps, formOption, debug } = this.props;
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
@@ -99,7 +99,7 @@ export default class Form extends Component {
                 parentRuntimeValue: undefined,
                 childEditor: null,
                 handle: {
-                    onChange,
+                    onChange: this.onChange,
                 },
                 objectKey: null,
                 arrayIndex: null,
