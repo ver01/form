@@ -69,7 +69,7 @@ export default class Form extends Component {
         this.rootRuntimeError = {};
 
         const { rootRawReadonlyValue, rootRawReadonlySchema, formProps, formOption, debug } = this.props;
-        const onChange = this.props.onChange.bind(this);
+        const onChange = this.onChange.bind(this);
 
         const THE_ROOT = true;
         const NOT_BYPASS_SCHEMA_HANDLE = false;
